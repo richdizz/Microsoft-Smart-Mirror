@@ -22,6 +22,18 @@ namespace SmartMirror
     /// </summary>
     sealed partial class App : Application
     {
+        // TODO add your keys here!
+
+        internal const string FACE_API_SUBSCRIPTION_KEY = "a1be835a55e64469a5d150bff962f15f";
+        internal const string FACE_API_GROUPID = "fdb27bef-3d3b-4b18-ac32-cf30911509a8";
+
+        //internal const string EMOTION_API_SUBSCRIPTION_KEY = "19b9583c5a2e4b6fa795167152786484";
+
+        //internal const string SPEAKER_RECOGNITION_API_SUBSCRIPTION_KEY = "9788badee395465ab1e182077dd29004";
+
+        internal const string LUIS_SUBCRIPTION_KEY = "db20c5b6d87a4bb28ff5e61b96f28874";
+        internal const string LUIS_APP_ID = "1d5c9600-92d1-4c87-a3aa-2ee5d2312008";
+
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().
