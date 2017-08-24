@@ -1,40 +1,33 @@
-﻿using Microsoft.Cognitive.LUIS;
-using Microsoft.IdentityModel.Clients.ActiveDirectory;
+﻿using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.ProjectOxford.Face;
-using Microsoft.ProjectOxford.Face.Contract;
 using Newtonsoft.Json.Linq;
-using SmartMirror.Data;
 using SmartMirror.Models;
+using SmartMirror.Utils;
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.WindowsRuntime;
-using System.Threading;
 using System.Threading.Tasks;
-using Windows.Devices.Enumeration;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
-using Windows.Graphics.Display;
 using Windows.Graphics.Imaging;
-using Windows.Media;
 using Windows.Media.Capture;
+using Windows.Media.FaceAnalysis;
 using Windows.Media.MediaProperties;
-using Windows.System.Display;
-using Windows.UI;
-using Windows.UI.Core;
+using Windows.Storage;
+using Windows.Storage.Streams;
+using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Xaml.Navigation;
-using Windows.UI.Xaml.Shapes;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -43,888 +36,278 @@ namespace SmartMirror
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class MainPage : Page, INotifyPropertyChanged
+    public sealed partial class MainPage : Page
     {
-
-        #region Variables
-
-        private static string CLIENT_ID = "53280cb3-3587-43fe-a264-234ce1d22524";
-        private static string REDIRECT = "https://localhost:44300";
-        private static string AUTHORITY = "https://login.microsoftonline.com/common";
-        private static string GRAPH_RESOURCE = "https://graph.microsoft.com";
-
-        private const int MAX_SESSION_TIME_WITH_NO_FACE = 5;
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private DisplayRequest _displayRequest;
-        private MediaCapture _mediaCapture;
-        private CancellationTokenSource _ctsVideoMonitor;
-        private CancellationTokenSource _customerSessionCTS;
-        private Task _faceMonitoringTask = null;
-        private TextToSpeech _tts;
-
-        private SpeechToText _speechToText;
-        private string _SpeechToTextLanguageName = "en-US";
-        private int _SpeechToTextInitialSilenceTimeoutInSeconds = 6;
-        private int _SpeechToTextBabbleTimeoutInSeconds = 0;
-        private int _SpeechToTextEndSilenceTimeoutInSeconds = 3;
-
-        private FaceAttributeType[] _faceAttributesToTrack = null;
-
-        #endregion
-
-        #region Properties
-
-        private Guid _trackedFaceID = Guid.Empty;
-        /// <summary>
-        /// Gets or sets the ID of the face being tracked.
-        /// </summary>
-        public Guid TrackedFaceID
-        {
-            get { return _trackedFaceID; }
-            private set
-            {
-                if (this.SetProperty(ref _trackedFaceID, value))
-                    this.User = null;
-            }
-        }
-
-        private Face _trackedFace = null;
-        /// <summary>
-        /// Gets or sets an instance of the face object representing the face in front of the camera.
-        /// </summary>
-        public Face TrackedFace
-        {
-            get { return _trackedFace; }
-            private set { this.SetProperty(ref _trackedFace, value); }
-        }
-
-        private UserProfile _User;
-        /// <summary>
-        /// Gets or set the user profile instance of a customer in front of the camera.
-        /// </summary>
-        public UserProfile User
-        {
-            get { return _User; }
-            private set { this.SetProperty(ref _User, value); }
-        }
-
-        private bool _ShowMicrophone;
-        /// <summary>
-        /// Shows or hides the microphone icon on the UI.
-        /// </summary>
-        public bool ShowMicrophone
-        {
-            get { return _ShowMicrophone; }
-            private set { this.SetProperty(ref _ShowMicrophone, value); }
-        }
-
-        private string _MicrophoneText;
-        /// <summary>
-        /// Shows or hides text next to the microphone icon on the UI.
-        /// </summary>
-        public string MicrophoneText
-        {
-            get { return _MicrophoneText; }
-            private set { this.SetProperty(ref _MicrophoneText, value); }
-        }
-
-        private string _KioskMessage;
-        /// <summary>
-        /// Shows or hides the text the kiosk needs to show the the customer on the UI.
-        /// </summary>
-        public string KioskMessage
-        {
-            get { return _KioskMessage; }
-            private set { this.SetProperty(ref _KioskMessage, value); }
-        }
-
-        private string _HeaderText;
-        /// <summary>
-        /// Shows or hides the header message on the UI.
-        /// </summary>
-        public string HeaderText
-        {
-            get { return _HeaderText; }
-            private set { this.SetProperty(ref _HeaderText, value); }
-        }
-
-        private string _CustomerMessage;
-        /// <summary>
-        /// Shows or hides the text spoken by the customer on the UI.
-        /// </summary>
-        public string CustomerMessage
-        {
-            get { return _CustomerMessage; }
-            private set { this.SetProperty(ref _CustomerMessage, value); }
-        }
-
-        private bool _ShowVoiceVerificationPassedIcon;
-        /// <summary>
-        /// Shows or hides the voice verification passed UI icon.
-        /// </summary>
-        public bool ShowVoiceVerificationPassedIcon
-        {
-            get { return _ShowVoiceVerificationPassedIcon; }
-            private set { this.SetProperty(ref _ShowVoiceVerificationPassedIcon, value); }
-        }
-
-        #endregion
-
-
-        #region Constructor
+        private User activeUser;
+        private AuthenticationContext ctx = new AuthenticationContext(AuthHelper.AUTHORITY, false, new TokenCache());
+        private int timeoutTicks = 10000; // ticks between checks if the signed in user is still in front of mirror
+        private int timeoutCountdown = 15; // seconds before we automatically sign the user out after we determine him away from mirror
+        private static string FACE_COGSVC_KEY = "c7b03b0b8fe748bcb090475af14ed338"; // subscription key for Microsoft Face Cognitive Service
 
         public MainPage()
         {
             this.InitializeComponent();
+            this.Loaded += MainPage_Loaded;
+
+            // Setup default view of fullscreen
+            //TODO: undo the comment-out
+            //ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.FullScreen;
+            //ApplicationView.GetForCurrentView().TryEnterFullScreenMode();
         }
 
-        #endregion
-
-        #region Methods
-
-        #region NavigatedTo / NavigatedFrom
-
-        protected async override void OnNavigatedTo(NavigationEventArgs e)
+        private async void MainPage_Loaded(object sender, RoutedEventArgs e)
         {
-            // Set the page to standby mode to start off with
-            //this.GoToVisualState("Standby");
-
-            _ctsVideoMonitor = new CancellationTokenSource();
-
-            // Initialize the text-to-speech class instance. It uses the MediaElement on the page to play sounds thus you need to pass it a reference to.
-            _tts = new TextToSpeech(this.media, this.Dispatcher);
-
-            // Initialize the speech-to-text class instance which is used to recognize speech commands by the customer
-            _speechToText = new SpeechToText(
-                _SpeechToTextLanguageName,
-                _SpeechToTextInitialSilenceTimeoutInSeconds,
-                _SpeechToTextBabbleTimeoutInSeconds,
-                _SpeechToTextEndSilenceTimeoutInSeconds);
-            await _speechToText.InitializeRecognizerAsync();
-            _speechToText.OnHypothesis += _speechToText_OnHypothesis;
-            _speechToText.CapturingStarted += _speechToText_CapturingStarted;
-            _speechToText.CapturingEnded += _speechToText_CapturingEnded;
-
-            // Orientation preference set to portrait
-            DisplayInformation.AutoRotationPreferences = DisplayOrientations.Portrait;
-
-            // Keeps the screen alive i.e. prevents screen from going to sleep
-            _displayRequest = new DisplayRequest();
-            _displayRequest.RequestActive();
-
-            // Find all the video cameras on the device
-            var cameras = await DeviceInformation.FindAllAsync(DeviceClass.VideoCapture);
-
-            // Choose the first externally plugged in camera found
-            var preferredCamera = cameras.FirstOrDefault(deviceInfo => deviceInfo.EnclosureLocation == null);
-
-            // If no external camera, choose the front facing camera ELSE choose the first available camera found
-            if (preferredCamera == null)
-                preferredCamera = cameras.FirstOrDefault(deviceInfo => deviceInfo.EnclosureLocation?.Panel == Windows.Devices.Enumeration.Panel.Front) ?? cameras.FirstOrDefault();
-
-            //  No camera found on device
-            if (preferredCamera == null)
-            {
-                Debug.WriteLine("No camera found on device!");
-                return;
-            }
-
-            // Initialize and start the camera video stream into the app preview window
-            _mediaCapture = new MediaCapture();
-            await _mediaCapture.InitializeAsync(new MediaCaptureInitializationSettings()
-            {
-                StreamingCaptureMode = StreamingCaptureMode.Video,
-                VideoDeviceId = preferredCamera.Id
-            });
-            videoPreview.Source = _mediaCapture;
-            await _mediaCapture.StartPreviewAsync();
-
-            // Ensure state is clear
-            await this.EndSessionAsync();
-
-            // Initiate monitoring of the video stream for faces
-            _faceMonitoringTask = this.FaceMonitoringAsync(_ctsVideoMonitor.Token);
-
-            base.OnNavigatedTo(e);
+            // wait for a user in front of the mirror
+            tbDeviceCodePrompt.Text = "Stand in front of the Microsoft Smart Mirror to sign-in";
+            await waitForUser();
         }
-
-        protected async override void OnNavigatedFrom(NavigationEventArgs e)
-        {
-            // Cancel all tasks that are running
-            _ctsVideoMonitor.Cancel();
-
-            // Wait for the main video monitoring task to complete
-            await _faceMonitoringTask;
-
-            // Allows the screen to go to sleep again when you leave this page
-            _displayRequest.RequestRelease();
-            _displayRequest = null;
-
-            // Stop and clean up the video feed
-            await _mediaCapture.StopPreviewAsync();
-            videoPreview.Source = null;
-            _mediaCapture.Dispose();
-            _mediaCapture = null;
-
-            base.OnNavigatedFrom(e);
-        }
-
-        #endregion
-
-        #region Video Stream Monitoring
 
         /// <summary>
-        /// Looping task which monitors the video feed.
+        /// Waits for a user to stand in front of the mirror
         /// </summary>
-        /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task FaceMonitoringAsync(CancellationToken ct)
+        private async Task waitForUser()
         {
-            DateTime lastFaceSeen = DateTime.MinValue;
-
-            // Continue looping / watching the video stream until this page asks to stop via the cancellation token
-            while (ct.IsCancellationRequested == false)
+            // Go into loop looking for faces
+            IList<DetectedFace> faces = new List<DetectedFace>();
+            while (faces.Count == 0)
             {
-                try
+                var results = await detectFaces();
+                faces = results.Faces;
+                if (faces.Count == 0)
                 {
-                    if (_mediaCapture.CameraStreamState != Windows.Media.Devices.CameraStreamState.Streaming)
-                        continue;
+                    // wait one second and then look again
+                    var timer = Task.Delay(1000);
+                    await timer;
+                }
+                else
+                {
+                    // get user match from picture
+                    activeUser = await getUserMatch(results.ImageBytes);
 
-                    // Capture a frame from the video feed
-                    var mediaProperties = _mediaCapture.VideoDeviceController.GetMediaStreamProperties(MediaStreamType.VideoPreview) as VideoEncodingProperties;
-                    var videoFrame = new VideoFrame(BitmapPixelFormat.Rgba16, (int)mediaProperties.Width, (int)mediaProperties.Height);
-                    await _mediaCapture.GetPreviewFrameAsync(videoFrame);
-
-                    // Detect faces in frame bitmap
-                    var faces = await this.FaceDetectionAsync(videoFrame.SoftwareBitmap, _faceAttributesToTrack);
-
-                    if (faces?.Any() == true)
+                    // See if we found a match
+                    if (activeUser == null)
                     {
-                        // A face was found, save a reference to the tracke face
-                        var face = faces.First();
-                        this.TrackedFace = face;
-
-                        // Save the time the last face was seen...used to detect if someone walked away from the view of the camera
-                        lastFaceSeen = DateTime.Now;
-
-                        // If the previous frame didnt have a face, that means this is a new customer
-                        //if (face.FaceId != this.TrackedFaceID)
-                        if (this.TrackedFaceID == Guid.Empty)
+                        // This is a new user...prompt them to sign-in using device code flow
+                        var codeResult = await ctx.AcquireDeviceCodeAsync(AuthHelper.GRAPH_RESOURCE, AuthHelper.CLIENT_ID);
+                        tbDeviceCodePrompt.Text = codeResult.Message;
+                        var result = await AuthHelper.AcquireTokenByDeviceCodeAsync(codeResult);
+                        if (result == null)
+                            await waitForUser();
+                        else
                         {
-                            await this.EndSessionAsync();
-                            await this.StartSessionAsync(face.FaceId);
+                            // Provision User in local storage
+                            activeUser = new User(result);
+                            activeUser.Photo = results.ImageBytes;
+
+                            // Save the user in storage
+                            await StorageHelper.SaveUserAsync(activeUser);
+                            tbDeviceCodePrompt.Text = $"Welcome {activeUser.DisplayName}...you are now registered to use the Microsoft Smart Mirror";
+                            await waitForUserExit(timeoutTicks);
                         }
                     }
-                    else if (lastFaceSeen.AddSeconds(MAX_SESSION_TIME_WITH_NO_FACE) < DateTime.Now)
+                    else
                     {
-                        // There has been no face seen in view of the camera for the alloted period of time. Assume the customer abandoned the session and reset.
-                        await this.EndSessionAsync();
+                        // Try to get new token for the user
+                        var token = await AuthHelper.AcquireTokenWithRefreshTokenAsync(activeUser.AuthResults.refresh_token, AuthHelper.GRAPH_RESOURCE);
+                        if (token == null)
+                        {
+                            // This is a new user...prompt them to sign-in using device code flow
+                            var codeResult = await ctx.AcquireDeviceCodeAsync(AuthHelper.GRAPH_RESOURCE, AuthHelper.CLIENT_ID);
+                            tbDeviceCodePrompt.Text = codeResult.Message;
+                            var result = await AuthHelper.AcquireTokenByDeviceCodeAsync(codeResult);
+                            if (result == null)
+                                await waitForUser();
+                            else
+                            {
+                                // update the user's tokens
+                                activeUser.AuthResults = result;
+
+                                // Save the user in storage
+                                await StorageHelper.SaveUserAsync(activeUser);
+                                tbDeviceCodePrompt.Text = $"Welcome back {activeUser.DisplayName}";
+                                await waitForUserExit(timeoutTicks);
+                            }
+                        }
+                        else
+                        {
+                            tbDeviceCodePrompt.Text = $"Welcome back {activeUser.DisplayName}";
+                            await waitForUserExit(timeoutTicks);
+                        }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine("Error analyzing video frame: " + ex.ToString());
                 }
             }
         }
 
-        #endregion
-
-        #region Cognitive Services - Face Detection
-
         /// <summary>
-        /// Detects faces in an instance of a SoftwareBitmap object representing a frame from a video feed.
+        /// Waits for a signed in user to step away from the mirror
         /// </summary>
-        /// <param name="bitmap">Image from a frame from a video feed.</param>
-        /// <param name="features">Array of FaceAttributeType enum objects used to specify which facial features should be analyzed.</param>
+        /// <param name="ticks"></param>
         /// <returns></returns>
-        private async Task<Microsoft.ProjectOxford.Face.Contract.Face[]> FaceDetectionAsync(SoftwareBitmap bitmap, params FaceAttributeType[] features)
+        private async Task waitForUserExit(int ticks)
         {
-            // Convert video frame image to a stream
-            var stream = await bitmap.AsStream();
+            // delay by timeout ticks
+            var timer = Task.Delay(ticks);
+            await timer;
 
-            // Cognitive Services Face API client from the Nuget package
-            var client = new FaceServiceClient(App.FACE_API_SUBSCRIPTION_KEY);
+            // look for the user in the frame
+            var results = await detectFaces();
 
-            // Ask Cognitive Services to analyze the picture and determine face attributes as specified in array
-            var faces = await client.DetectAsync(
-                imageStream: stream,
-                returnFaceId: true,
-                returnFaceLandmarks: false,
-                returnFaceAttributes: features
-                );
-
-            // Remove previous faces on UI canvas
-            this.ClearFacesOnUI();
-
-            // Video feed is probably a different resolution than the actual window size, so scale the sizes of each face
-            double widthScale = bitmap.PixelWidth / facesCanvas.ActualWidth;
-            double heightScale = bitmap.PixelHeight / facesCanvas.ActualHeight;
-
-            // Draw a box for each face detected w/ text of face features
-            foreach (var face in faces)
-                this.DrawFaceOnUI(widthScale, heightScale, face);
-
-            return faces;
+            // check for match
+            if (results.Faces.Count != 0)
+            {
+                // Look for matches
+                var user = await getUserMatch(results.ImageBytes);
+                if (user.Id != activeUser.Id)
+                {
+                    // the current user does not match the activeuser
+                    if (timeoutCountdown < 0)
+                    {
+                        // the sign-out countdown has expired
+                        timeoutCountdown = 15;
+                        activeUser = null;
+                        tbDeviceCodePrompt.Text = "Stand in front of the Microsoft Smart Mirror to sign-in";
+                        await waitForUser();
+                    }
+                    else
+                    {
+                        // update the sign-out countdown
+                        tbDeviceCodePrompt.Text = $"Where did you go {activeUser.DisplayName}? We will automatically sign you out in {timeoutCountdown--.ToString()} sec.";
+                        await waitForUserExit(1000);
+                    }
+                }
+                else
+                {
+                    // the current user matches the active user...reset the countdown
+                    timeoutCountdown = 15;
+                    tbDeviceCodePrompt.Text = "";
+                    await waitForUserExit(timeoutTicks);
+                }
+            }
+            else
+            {
+                // no faces detected...start the countdown
+                if (timeoutCountdown < 0)
+                {
+                    // the sign-out countdown has expired
+                    timeoutCountdown = 15;
+                    activeUser = null;
+                    tbDeviceCodePrompt.Text = "Stand in front of the Microsoft Smart Mirror to sign-in";
+                    await waitForUser();
+                }
+                else
+                {
+                    // update the sign-out countdown
+                    tbDeviceCodePrompt.Text = $"Where did you go {activeUser.DisplayName}? We will automatically sign you out in {timeoutCountdown--.ToString()} sec.";
+                    await waitForUserExit(1000);
+                }
+            }
         }
 
         /// <summary>
-        /// Draws a face boxe on the UI
+        /// Detects faces
         /// </summary>
-        /// <param name="widthScale"></param>
-        /// <param name="heightScale"></param>
-        /// <param name="face"></param>
-        private void DrawFaceOnUI(double widthScale, double heightScale, Microsoft.ProjectOxford.Face.Contract.Face face)
+        /// <returns>complex object containing the detected faces and the image captured from camera</returns>
+        private async Task<ImageWithFaceDetection> detectFaces()
         {
+            // Initialize MediaCapture and FaceDetector
+            MediaCapture capture = new MediaCapture();
+            await capture.InitializeAsync();
+            var lowLagCapture = await capture.PrepareLowLagPhotoCaptureAsync(ImageEncodingProperties.CreateUncompressed(MediaPixelFormat.Bgra8));
+            FaceDetector faceDetector = await FaceDetector.CreateAsync();
+
+            // Capture a frame and check for faces
+            var photo = await lowLagCapture.CaptureAsync();
+            var bmp = SoftwareBitmap.Convert(photo.Frame.SoftwareBitmap, BitmapPixelFormat.Nv12);
+
+            // Get the jpeg image bytes for this image
+            byte[] imageBytes = null;
+            using (var ms = new InMemoryRandomAccessStream())
+            {
+                var jpeg = SoftwareBitmap.Convert(photo.Frame.SoftwareBitmap, BitmapPixelFormat.Rgba16);
+                BitmapEncoder encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.JpegEncoderId, ms);
+                encoder.SetSoftwareBitmap(jpeg);
+                await encoder.FlushAsync();
+                imageBytes = new byte[ms.Size];
+                await ms.ReadAsync(imageBytes.AsBuffer(), (uint)ms.Size, InputStreamOptions.None);
+            }
+
+            // Detect faces
+            IList<DetectedFace> faces = await faceDetector.DetectFacesAsync(bmp);
+
+            // TODO: crop captured picture to only look at user in the center;
+            return new ImageWithFaceDetection(imageBytes, faces);
+        }
+
+        /// <summary>
+        /// Finds an existing registered user that matches the picture passed in (using msft face cog svc)
+        /// </summary>
+        /// <param name="capturedPictureBytes"></param>
+        /// <returns>Matching User</returns>
+        private async Task<User> getUserMatch(byte[] capturedPictureBytes)
+        {
+            // get all registered mirror users
+            var users = await StorageHelper.GetUsersAsync();
+
+            //var stream = photo.Frame.AsStreamForRead();
+            for (var i = 0; i < users.Count; i++)
+            {
+                // check for match (score >= 95 from face cog svc)
+                var score = await getScoreForTwoFaces(new MemoryStream(capturedPictureBytes), new MemoryStream(users[i].Photo));
+                if (score >= 95)
+                {
+                    return users[i];
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Gets match score for two photos
+        /// </summary>
+        /// <param name="img1">the first photo</param>
+        /// <param name="img2">the second photo</param>
+        /// <returns>match score between 0 and 100</returns>
+        private async Task<double> getScoreForTwoFaces(Stream img1, Stream img2)
+        {
+            // TODO: update to handle multiple faces???
             try
             {
-                Rectangle box = new Rectangle();
-                box.Width = (uint)(face.FaceRectangle.Width / widthScale);
-                box.Height = (uint)(face.FaceRectangle.Height / heightScale);
-                box.Fill = new SolidColorBrush(Colors.Transparent);
-                box.Stroke = new SolidColorBrush(Colors.Lime);
-                box.StrokeThickness = 2;
-                box.Margin = new Thickness((uint)(face.FaceRectangle.Left / widthScale), (uint)(face.FaceRectangle.Top / heightScale), 0, 0);
-                facesCanvas.Children.Add(box);
+                FaceServiceClient client = new FaceServiceClient(FACE_COGSVC_KEY);
+                var faces1 = await client.DetectAsync(img1);
+                var faces2 = await client.DetectAsync(img2);
 
-                // Add face attributes found
-                var tb = new TextBlock();
-                tb.Foreground = new SolidColorBrush(Colors.Lime);
-                tb.Padding = new Thickness(4);
-                tb.Margin = new Thickness((uint)(face.FaceRectangle.Left / widthScale), (uint)(face.FaceRectangle.Top / heightScale), 0, 0);
-
-                if (face.FaceAttributes?.Age > 0)
-                    tb.Text += "Age: " + face.FaceAttributes.Age + Environment.NewLine;
-
-                if (!string.IsNullOrEmpty(face.FaceAttributes?.Gender))
-                    tb.Text += "Gender: " + face.FaceAttributes.Gender + Environment.NewLine;
-
-                if (face.FaceAttributes?.Smile > 0)
-                    tb.Text += "Smile: " + face.FaceAttributes.Smile + Environment.NewLine;
-
-                if (face.FaceAttributes != null && face.FaceAttributes.Glasses != Microsoft.ProjectOxford.Face.Contract.Glasses.NoGlasses)
-                    tb.Text += "Glasses: " + face.FaceAttributes?.Glasses + Environment.NewLine;
-
-                if (face.FaceAttributes?.FacialHair != null)
+                if (faces1 == null || faces2 == null)
                 {
-                    tb.Text += "Beard: " + face.FaceAttributes.FacialHair.Beard + Environment.NewLine;
-                    tb.Text += "Moustache: " + face.FaceAttributes.FacialHair.Moustache + Environment.NewLine;
-                    tb.Text += "Sideburns: " + face.FaceAttributes.FacialHair.Sideburns + Environment.NewLine;
+                    var x = 1;
+                    //return Json(new { error = "Error: It looks like we can't detect faces in one of these photos..." });
+                }
+                if (faces1.Count() == 0 || faces2.Count() == 0)
+                {
+                    var x = 1;
+                    //return Json(new { error = "Error: It looks like we can't detect faces in one of these photos..." });
+                }
+                if (faces1.Count() > 1 || faces2.Count() > 1)
+                {
+                    var x = 1;
+                    //return Json(new { error = "Error: Each photo must have only one face. Nothing more, nothing less..." });
+                }
+                var res = await client.VerifyAsync(faces1[0].FaceId, faces2[0].FaceId);
+                double score = 0;
+                if (res.IsIdentical)
+                    score = 100;
+                else
+                {
+                    score = Math.Round((res.Confidence / 0.5) * 100);
                 }
 
-                facesCanvas.Children.Add(tb);
+                return score;
             }
             catch (Exception ex)
             {
-                this.Log("Failure during DrawFaceOnUI()", ex);
+                return 0;
             }
         }
-
-        /// <summary>
-        /// Draws a collection of face boxes on the UI
-        /// </summary>
-        /// <param name="frameWidth"></param>
-        /// <param name="frameHeight"></param>
-        /// <param name="faces"></param>
-        private void DrawFacesOnUI(int frameWidth, int frameHeight, Microsoft.ProjectOxford.Face.Contract.Face[] faces)
-        {
-            this.ClearFacesOnUI();
-
-            if (faces == null)
-                return;
-
-            // Video feed is probably a different resolution than the actual window size, so scale the sizes of each face
-            double widthScale = frameWidth / facesCanvas.ActualWidth;
-            double heightScale = frameHeight / facesCanvas.ActualHeight;
-
-            // Draw each face
-            foreach (var face in faces)
-                this.DrawFaceOnUI(widthScale, heightScale, face);
-        }
-
-        /// <summary>
-        /// Clears face boxes on the UI
-        /// </summary>
-        private void ClearFacesOnUI()
-        {
-            facesCanvas.Children.Clear();
-        }
-
-        //private async Task<bool> IsCustomerSmilingAsync(SoftwareBitmap bitmap)
-        //{
-        //    // Convert video frame image to a stream
-        //    var stream = await bitmap.AsStream();
-
-        //    // Call Cognitive Services Face API to look for identity candidates in the bitmap image
-        //    var client = new FaceServiceClient(App.FACE_API_SUBSCRIPTION_KEY);
-
-        //    // Ask Cognitive Services to also analyze the picture for smiles on the face
-        //    var faces = await client.DetectAsync(
-        //        imageStream: stream,
-        //        returnFaceId: true,
-        //        returnFaceLandmarks: false,
-        //        returnFaceAttributes: new FaceAttributeType[] { FaceAttributeType.Smile }
-        //        );
-
-        //    // If a face was found, check to see if the confidence of the smile is at least 75%
-        //    if (faces?.Any() == true)
-        //        return faces[0].FaceAttributes.Smile > .75;
-        //    else
-        //        return false;
-        //}
-
-        #endregion
-
-        #region Cognitive Services - Face Verification
-
-        private async Task<UserProfile> FaceVerificationAsync(CancellationToken ct, params Guid[] faceIDs)
-        {
-            if (faceIDs == null || faceIDs.Length == 0)
-                return null;
-
-            // Call Cognitive Services Face API to look for identity candidates in the bitmap image
-            FaceServiceClient client = new FaceServiceClient(App.FACE_API_SUBSCRIPTION_KEY);
-            var identityResults = await client.IdentifyAsync(App.FACE_API_GROUPID, faceIDs, confidenceThreshold: 0.6f);
-
-            ct.ThrowIfCancellationRequested();
-
-            // Get the candidate with the highest confidence or null
-            var candidate = identityResults.FirstOrDefault()?.Candidates?.OrderByDescending(o => o.Confidence).FirstOrDefault();
-
-            // If candidate found, take the face ID and lookup in our customer database
-            if (candidate != null)
-                return await UserLookupService.Instance.GetUserByFaceProfileID(ct, candidate.PersonId);
-            else
-                return null;
-        }
-
-        #endregion
-
-        #region Cognitive Services - LUIS (Language Understanding Intelligence Service)
-
-        private async Task<bool> ProcessCustomerTextAsync(CancellationToken ct, string userSpokenText)
-        {
-            // Use the LUIS API nuget package to access to the Cognitive Services LUIS service
-            var client = new LuisClient(App.LUIS_APP_ID, App.LUIS_SUBCRIPTION_KEY);
-
-            // Pass the phrase spoken by the user to the service to determine the user's intent
-            var result = await client.Predict(userSpokenText);
-
-            // Run the appropriate business logic in response to the user's language intent. Intent names are defined in the LUIS model.
-            switch (result?.TopScoringIntent?.Name)
-            {
-                //case "rentBike":
-                //case "Pickup":
-                //    await this.PerformRentBikeAsync(ct);
-                //    return true;
-
-                //case "returnBike":
-                //    await this.PerformReturnBikeAsync(ct);
-                //    return true;
-
-                //case "extendRental":
-                //    await this.PerformExtendRentalAsync(ct);
-                //    return true;
-
-                //case "contactCustomerService":
-                //    await this.PerformContactCustomerServiceAsync(ct);
-                //    return true;
-
-                default:
-                    // User spoken text wasn't recognized, run default logic
-                    await this.UnrecognizedIntentAsync(ct);
-                    return false;
-            }
-        }
-
-        #endregion
-
-        #region Business Logic
-
-        private Task _customerSessionTask;
-
-        /// <summary>
-        /// Starts a new customer session
-        /// </summary>
-        /// <param name="faceID"></param>
-        /// <returns></returns>
-        private async Task StartSessionAsync(Guid faceID)
-        {
-            await this.EndSessionAsync();
-
-            _customerSessionCTS = new CancellationTokenSource();
-            this.TrackedFaceID = faceID;
-
-            // Set the UI to customer present mode
-            this.GoToVisualState("CustomerPresent");
-
-            // Track the task which runs the customer session business flow
-            _customerSessionTask = this.CustomerSessionProcessAsync(_customerSessionCTS.Token);
-        }
-
-        /// <summary>
-        /// Ends a customer session and resets the UI
-        /// </summary>
-        /// <returns></returns>
-        private async Task EndSessionAsync()
-        {
-            // Set the UI to the standby mode
-            this.GoToVisualState("Standby");
-
-            // Stop any customer related tasks that are currently in progress
-            if (_customerSessionCTS != null)
-            {
-                _customerSessionCTS.Cancel();
-                _customerSessionTask = null;
-                _customerSessionCTS = null;
-                await Task.CompletedTask;
-            }
-
-            // Reset all objects used to manage the customer session / UI
-            _faceAttributesToTrack = null;
-            this.TrackedFace = null;
-            this.TrackedFaceID = Guid.Empty;
-            this.User = null;
-            this.CustomerMessage = null;
-            this.KioskMessage = null;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        private async Task CustomerSessionProcessAsync(CancellationToken ct)
-        {
-            try
-            {
-                // Perform face verfication of the customer in front of the camera. If known customer, the this.User property will be set with the customer profile
-                await this.PerformFaceVerificationAsync(ct);
-
-                // If a known customer is present, continue the business flow
-                if (this.User != null && await this.PerformLoginAsync(ct))
-                //// If a known customer is present, have the customer do their voice verfication and if successful, continue the business flow
-                //if (this.User != null && await this.PerformVoiceVerficationAsync(ct))
-                {
-                    // Customer is authenticated and authorized
-
-                    int attempts = 0;
-                    bool intentProcessed = false;
-                    do
-                    {
-                        // Continue looping asking the customer what they want to do and handle their request until one completes or they leave the kiosk
-
-                        attempts++;
-                        ct.ThrowIfCancellationRequested();
-
-                        // User keeps speaking commands that are not recognized, stop the loop
-                        if (attempts > 5)
-                        {
-                            await this.DisplayKioskMessageAsync(ct, "You've reached the maximum number of attempts, please authenticate again.");
-                            break;
-                        }
-
-                        this.CustomerMessage = null;
-                        await this.DisplayKioskMessageAsync(ct, $"{this.User.FirstName}, how can I help you?");
-
-                        // Prompt user to speak a command
-                        await _speechToText.GetTextFromSpeechAsync();
-
-                        // Process the spoken command using LUIS
-                        await this.DisplayKioskMessageAsync(ct, "Thinking...", false);
-                        intentProcessed = await this.ProcessCustomerTextAsync(ct, this.CustomerMessage);
-                        this.CustomerMessage = null;
-                    }
-                    while (intentProcessed == false); // Keep looping until a command is recognized
-
-                    // Final verification check to make sure customer is smiling before leaving the kiosk
-                    //await this.PerformCustomerHappyVerificationAsync(ct);
-                }
-            }
-            catch (Exception ex)
-            {
-                this.Log("Error in CustomerSessionProcessAsync(): " + ex.Message, ex);
-            }
-            finally
-            {
-                // Customer interaction is complete, reset and end the session
-                this.CustomerMessage = null;
-                await this.DisplayKioskMessageAsync(ct, "Goodbye!");
-                await this.EndSessionAsync();
-            }
-        }
-
-        ///// <summary>
-        ///// Monitors the video feed until the user smiles
-        ///// </summary>
-        ///// <param name="ct"></param>
-        ///// <returns></returns>
-        //private async Task PerformCustomerHappyVerificationAsync(CancellationToken ct)
-        //{
-        //    _faceAttributesToTrack = new FaceAttributeType[] { FaceAttributeType.Smile };
-
-        //    await this.DisplayKioskMessageAsync(ct, "By the way, it's beautiful out, why aren't you smiling?");
-
-        //    // Wait until the customer smiles...must be at least .7 confidence to pass
-        //    while ((this.TrackedFace?.FaceAttributes?.Smile ?? 0) < .7)
-        //        await Task.Delay(250);
-
-        //    await this.DisplayKioskMessageAsync(ct, "That's much better, enjoy your ride!");
-        //}
-
-        private async Task PerformFaceVerificationAsync(CancellationToken ct)
-        {
-            this.HeaderText = "Welcome to SmartMirror!";
-            await this.DisplayKioskMessageAsync(ct, "Well hello there! Give me a second to identify you...", false);
-            this.User = await this.FaceVerificationAsync(ct, this.TrackedFaceID);
-
-            if (this.User == null)
-            {
-                // new customer
-                await this.DisplayKioskMessageAsync(ct, "Hello new user! You need to be a registered user to use the mirror. Please set up a profile in our app or online and come back.");
-            }
-            else
-            {
-                // Customer is known
-                await this.DisplayKioskMessageAsync(ct, $"Welcome, {this.User.FirstName} {this.User.LastName}!");
-            }
-        }
-
-        //private async Task<bool> PerformVoiceVerficationAsync(CancellationToken ct)
-        //{
-        //    if (this.User?.VoiceProfileId.HasValue == true)
-        //    {
-        //        int maxAttempts = 3;
-        //        int attempts = 0;
-
-        //        while (attempts < maxAttempts)
-        //        {
-        //            ct.ThrowIfCancellationRequested();
-
-        //            try
-        //            {
-        //                attempts++;
-
-        //                await this.DisplayKioskMessageAsync(ct, attempts == 1 ? "Could you please speak your voice verification phrase?" : "Please re-speak your voice verification phrase.");
-
-        //                // Calling Speaker Recognition service to do the verification
-        //                if (await this.SpeakerVerificationAsync(ct, this.User.VoiceProfileId.Value, this.User.VoiceSecretPhrase) || true)
-        //                {
-        //                    this.ShowVoiceVerificationPassedIcon = true;
-        //                    await this.DisplayKioskMessageAsync(ct, "Your voice verification was successful!");
-        //                    return true;
-        //                }
-        //                else if (attempts < maxAttempts)
-        //                {
-        //                    await this.DisplayKioskMessageAsync(ct, "Voice verification failed!");
-        //                }
-        //                else
-        //                {
-        //                    await this.DisplayKioskMessageAsync(ct, "You are not authorized to use this account because your voice verification was not successful.");
-        //                    break;
-        //                }
-        //            }
-        //            finally
-        //            {
-        //                this.ShowVoiceVerificationPassedIcon = false;
-        //            }
-        //        }
-
-        //        return false;
-        //    }
-        //    else
-        //        return true;
-        //}
-
-        //private async Task PerformRentBikeAsync(CancellationToken ct)
-        //{
-        //    await this.DisplayKioskMessageAsync(ct, $"OK, {this.User.FirstName}, I've unlocked a bike from the rack for you and debited your account.");
-        //}
-
-        //private async Task PerformReturnBikeAsync(CancellationToken ct)
-        //{
-        //    await this.DisplayKioskMessageAsync(ct, "Thank you for returning the bike! Please place it in an open slot in the rack right and your rental will be completed.");
-        //}
-
-        //private async Task PerformExtendRentalAsync(CancellationToken ct)
-        //{
-        //    await this.DisplayKioskMessageAsync(ct, "Your current rental has been extended.");
-        //}
-
-        //private async Task PerformContactCustomerServiceAsync(CancellationToken ct)
-        //{
-        //    await this.DisplayKioskMessageAsync(ct, "Customer service will call you momentarily...");
-        //}
-
-        private async Task UnrecognizedIntentAsync(CancellationToken ct)
-        {
-            await this.DisplayKioskMessageAsync(ct, "Sorry, I didn't understand your request.");
-        }
-
-        private async Task DisplayKioskMessageAsync(CancellationToken ct, string message = null, bool speakText = true)
-        {
-            this.KioskMessage = message;
-
-            ct.ThrowIfCancellationRequested();
-
-            if (speakText && !string.IsNullOrWhiteSpace(message))
-                await _tts.SpeakAsync(message);
-        }
-
-        #endregion
-
-        #region Speech-To-Text Events
-
-        private void _speechToText_OnHypothesis(object sender, string e)
-        {
-            // Speech-to-text provided text that was spoken by the customer
-            this.InvokeOnUIThread(() => this.CustomerMessage = e);
-        }
-
-        private void _speechToText_CapturingStarted(object sender, EventArgs e)
-        {
-            // Speech-to-text is starting, showing the microphone
-            this.InvokeOnUIThread(() => this.ShowMicrophone = true);
-        }
-
-        private void _speechToText_CapturingEnded(object sender, EventArgs e)
-        {
-            // Speech-to-text is ending, hide the microphone
-            this.InvokeOnUIThread(() => this.ShowMicrophone = false);
-        }
-
-        #endregion
-
-
-        #region Authentication
-
-        private async Task<bool> PerformLoginAsync(CancellationToken ct)
-        {
-            /* TODO:
-             * if (facialRecognitionMatch) {
-             *     if (tokenStillGood) {
-             *         signUserIntoMirror
-             *     }
-             *     else {
-             *         displayDeviceCodeToSignin
-             *     }
-             * }
-             * else {
-             *    displayDeviceCodeToSignin
-             * }
-             */
-
-            AuthenticationContext ctx = new AuthenticationContext(AUTHORITY);
-            var codeResult = await ctx.AcquireDeviceCodeAsync(GRAPH_RESOURCE, CLIENT_ID);
-            await this.DisplayKioskMessageAsync(ct, codeResult.Message);
-            var result = await ctx.AcquireTokenByDeviceCodeAsync(codeResult);
-            // can now use result.AccessToken with graph...we would also want to store a token and take pictures of the user here
-            await this.DisplayKioskMessageAsync(ct, $"Hello {result.UserInfo.GivenName} {result.UserInfo.FamilyName}! Your customized mirror will now load!");
-
-            // TODO: return false here if auth failed
-            return true;
-        }
-
-        #endregion
-
-        #region Data Binding
-
-        /// <summary>
-        /// Runs a function on the currently executing platform's UI thread.
-        /// </summary>
-        /// <param name="action">Code to be executed on the UI thread</param>
-        /// <param name="priority">Priority to indicate to the system when to prioritize the execution of the code</param>
-        /// <returns>Task representing the code to be executing</returns>
-        private void InvokeOnUIThread(System.Action action, CoreDispatcherPriority priority = CoreDispatcherPriority.Normal)
-        {
-            var _ = this.InvokeOnUIThreadAsync(action, priority);
-        }
-
-        private async Task InvokeOnUIThreadAsync(System.Action action, CoreDispatcherPriority priority = CoreDispatcherPriority.Normal)
-        {
-            if (this.Dispatcher == null || this.Dispatcher.HasThreadAccess)
-            {
-                action();
-            }
-            else
-            {
-                // Execute asynchronously on the thread the Dispatcher is associated with.
-                await this.Dispatcher.RunAsync(priority, () => action());
-            }
-        }
-
-        /// <summary>
-        /// Checks if a property already matches a desired value.  Sets the property and
-        /// notifies listeners only when necessary.
-        /// </summary>
-        /// <typeparam name="T">Type of the property.</typeparam>
-        /// <param name="storage">Reference to a property with both getter and setter.</param>
-        /// <param name="value">Desired value for the property.</param>
-        /// <param name="propertyName">Name of the property used to notify listeners.  This
-        /// value is optional and can be provided automatically when invoked from compilers that
-        /// support CallerMemberName.</param>
-        /// <returns>True if the value was changed, false if the existing value matched the
-        /// desired value.</returns>
-        private bool SetProperty<T>(ref T storage, T value, [CallerMemberName] String propertyName = null)
-        {
-            if (EqualityComparer<T>.Default.Equals(storage, value))
-            {
-                return false;
-            }
-            else
-            {
-                storage = value;
-                this.NotifyPropertyChanged(propertyName);
-                return true;
-            }
-        }
-
-        /// <summary>
-        /// Notifies listeners that a property value has changed.
-        /// </summary>
-        /// <param name="propertyName">Name of the property used to notify listeners.  This
-        /// value is optional and can be provided automatically when invoked from compilers
-        /// that support <see cref="CallerMemberNameAttribute"/>.</param>
-        private void NotifyPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        #endregion
-
-        #region Visual State
-
-        private void GoToVisualState(string visualStateName)
-        {
-            if (this.Dispatcher.HasThreadAccess)
-            {
-                VisualStateManager.GoToState(this, visualStateName, false);
-            }
-            else
-            {
-                var _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-                {
-                    VisualStateManager.GoToState(this, visualStateName, false);
-                });
-            }
-        }
-
-        #endregion
-
-        #region Logging
-
-        private void Log(string msg, Exception ex = null)
-        {
-            if (ex != null)
-                Debug.WriteLine(DateTime.Now.ToString() + ": " + msg + Environment.NewLine + ex?.ToString());
-            else
-                Debug.WriteLine(DateTime.Now.ToString() + ": " + msg);
-        }
-
-        #endregion
-
-        #endregion
     }
 }
