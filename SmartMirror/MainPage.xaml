@@ -5,10 +5,12 @@
     xmlns:local="using:SmartMirror"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d">
+    mc:Ignorable="d" SizeChanged="Page_SizeChanged">
 
-    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <TextBlock Name="tbDeviceCodePrompt" FontSize="32" VerticalAlignment="Center" HorizontalAlignment="Center" 
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Name="mainView">
+        <TextBlock Name="tbMessage" FontSize="32" VerticalAlignment="Center" HorizontalAlignment="Center" 
                    TextWrapping="Wrap" TextAlignment="Center"></TextBlock>
+        <TextBlock Name="tbOptions" FontSize="64" Visibility="Collapsed"></TextBlock>
+        <MediaElement Name="mediaElement"></MediaElement>
     </Grid>
 </Page>

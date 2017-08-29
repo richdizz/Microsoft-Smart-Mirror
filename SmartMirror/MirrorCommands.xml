@@ -1,0 +1,104 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<grammar xml:lang="en-US" root="rootCommands" version="1.0" xmlns="http://www.w3.org/2001/06/grammar">
+  <rule id="rootCommands">
+    <one-of>
+      <item><ruleref uri="#testCommand" /></item>
+      <item><ruleref uri="#addWidgetCommand" /></item>
+      <item><ruleref uri="#clearUsersCommand" /></item>
+      <item><ruleref uri="#saveLayoutCommand" /></item>
+      <item><ruleref uri="#editLayoutCommand" /></item>
+      <item><ruleref uri="#discardChangesCommand" /></item>
+    </one-of>
+  </rule>
+
+  <rule id="testCommand">
+    <item>hello world</item>
+  </rule>
+  
+  <rule id="listenCommand">
+    <one-of>
+      <item> hey mirror </item>
+      <item> mirror mirror </item>
+      <item> yo mirror </item>
+    </one-of>
+  </rule>
+  
+  <rule id="areas">
+    <one-of>
+      <item> one </item>
+      <item> two </item>
+      <item> three </item>
+      <item> four </item>
+      <item> five </item>
+      <item> six </item>
+      <item> seven </item>
+      <item> eight </item>
+      <item> nine </item>
+      <item> ten </item>
+      <item> eleven </item>
+      <item> twelve </item>
+      <item> thirteen </item>
+      <item> fourteen </item>
+      <item> fifteen </item>
+    </one-of>
+  </rule>
+
+  <rule id="widgets">
+    <one-of>
+      <item> a </item>
+      <item> b </item>
+      <item> c </item>
+      <item> d </item>
+      <item> e </item>
+      <item> f </item>
+      <item> g </item>
+      <item> h </item>
+      <item> i </item>
+      <item> j </item>
+      <item> k </item>
+      <item> l </item>
+      <item> m </item>
+      <item> n </item>
+      <item> o </item>
+      <item> p </item>
+      <item> q </item>
+      <item> r </item>
+      <item> s </item>
+      <item> t </item>
+      <item> u </item>
+      <item> v </item>
+      <item> w </item>
+      <item> x </item>
+      <item> y </item>
+      <item> z </item>
+    </one-of>
+  </rule>
+  
+  <rule id="addWidgetCommand">
+    <ruleref uri="#listenCommand" />
+    <item> add </item>
+    <ruleref uri="#widgets" />
+    <item> to area </item>
+    <ruleref uri="#areas" />
+  </rule>
+
+  <rule id="clearUsersCommand">
+    <ruleref uri="#listenCommand" />
+    <item> clear all users </item>
+  </rule>
+
+  <rule id="saveLayoutCommand">
+    <ruleref uri="#listenCommand" />
+    <item> save layout </item>
+  </rule>
+
+  <rule id="editLayoutCommand">
+    <ruleref uri="#listenCommand" />
+    <item> edit layout </item>
+  </rule>
+
+  <rule id="discardChangesCommand">
+    <ruleref uri="#listenCommand" />
+    <item> discard changes </item>
+  </rule>
+</grammar>

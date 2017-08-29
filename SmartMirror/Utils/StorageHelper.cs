@@ -11,6 +11,12 @@ namespace SmartMirror.Utils
 {
     public class StorageHelper
     {
+        public static async Task ResetUsers()
+        {
+            StorageFolder localFolder = ApplicationData.Current.LocalFolder;
+            StorageFile file = await localFolder.CreateFileAsync("data.json", CreationCollisionOption.ReplaceExisting);
+            await FileIO.WriteTextAsync(file, JsonConvert.SerializeObject(new List<User>()), Windows.Storage.Streams.UnicodeEncoding.Utf8);
+        }
         private static async Task<List<User>> getUsersAsync()
         {
             StorageFolder localFolder = ApplicationData.Current.LocalFolder;
@@ -31,9 +37,25 @@ namespace SmartMirror.Utils
 
         public static async Task SaveUserAsync(User user)
         {
-            //HACK
+            // get all users
             var users = await getUsersAsync();
-            users.Add(user);
+
+            // look for existing user
+            User dbUser = null;
+            for (var i = 0; i < users.Count; i++)
+            {
+                if (users[i].Id == user.Id)
+                {
+                    dbUser = users[i];
+                    dbUser.AuthResults = user.AuthResults;
+                }
+            }
+
+            // add the user if they were not found
+            if (dbUser == null)
+                users.Add(user);
+
+            // update the data.json file in local storage
             StorageFolder localFolder = ApplicationData.Current.LocalFolder;
             var file = await localFolder.CreateFileAsync("data.json", CreationCollisionOption.ReplaceExisting);
             await FileIO.WriteTextAsync(file, JsonConvert.SerializeObject(users), Windows.Storage.Streams.UnicodeEncoding.Utf8);
