@@ -39,6 +39,8 @@ using Microsoft.Cognitive.LUIS;
 using Windows.Media.SpeechRecognition;
 using Windows.ApplicationModel;
 using Windows.UI.Core;
+using Microsoft.Toolkit.Uwp.UI.Animations;
+
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -54,13 +56,15 @@ namespace SmartMirror
         private Queue<string> statementQueue = new Queue<string>();
         private int timeoutTicks = 10000; // ticks between checks if the signed in user is still in front of mirror
         private int timeoutCountdown = 15; // seconds before we automatically sign the user out after we determine him away from mirror
-        private static string FACE_COGSVC_KEY = ""; // subscription key for Microsoft Face Cognitive Service
+        private static string FACE_COGSVC_KEY = "a1be835a55e64469a5d150bff962f15f"; // subscription key for Microsoft Face Cognitive Service
         private static string LUIS_COGSVC_KEY = ""; // subscription key for LUIS model
         private ResourceLoader loader = new ResourceLoader();
         private SpeechRecognizer speechRecognizer;
         private static string directLineSecret = "";
         private static string botId = "MsftSmartMirror";
         private bool inEditMode = false;
+        private FaceDetector faceDetector;
+        private MediaCapture capture;
 
         // TODO: should these be in a json file instead???
         private Dictionary<char, WidgetOption> availableWidgets = new Dictionary<char, WidgetOption>()
@@ -92,7 +96,8 @@ namespace SmartMirror
             { "fourteen", 14 },
             { "fifteen", 15 }
         };
-        
+
+
         public MainPage()
         {
             this.InitializeComponent();
@@ -110,6 +115,19 @@ namespace SmartMirror
             // wait for a user in front of the mirror
             tbMessage.Text = "Stand in front of the Microsoft Smart Mirror to sign-in";
             await startListening();
+
+            // Initialize MediaCapture and FaceDetector
+            if (this.capture == null)
+            {
+                capture = new MediaCapture();
+                await capture.InitializeAsync();
+            }
+
+            if (this.faceDetector == null)
+            {
+                this.faceDetector = await FaceDetector.CreateAsync();
+            }
+
             await waitForUser();
         }
 
@@ -222,6 +240,10 @@ namespace SmartMirror
                         // This is a new user...prompt them to sign-in using device code flow
                         var codeResult = await ctx.AcquireDeviceCodeAsync(AuthHelper.GRAPH_RESOURCE, AuthHelper.CLIENT_ID);
                         tbMessage.Text = codeResult.Message;
+#if DEBUG                        
+                        // Convenience for debugging
+                        await Windows.System.Launcher.LaunchUriAsync(new Uri("https://aka.ms/devicelogin"));
+#endif
                         var result = await AuthHelper.AcquireTokenByDeviceCodeAsync(codeResult);
                         if (result == null)
                             await waitForUser();
@@ -408,30 +430,35 @@ namespace SmartMirror
         /// <returns>complex object containing the detected faces and the image captured from camera</returns>
         private async Task<ImageWithFaceDetection> detectFaces()
         {
-            // Initialize MediaCapture and FaceDetector
-            MediaCapture capture = new MediaCapture();
-            await capture.InitializeAsync();
-            var lowLagCapture = await capture.PrepareLowLagPhotoCaptureAsync(ImageEncodingProperties.CreateUncompressed(MediaPixelFormat.Bgra8));
-            FaceDetector faceDetector = await FaceDetector.CreateAsync();
-
-            // Capture a frame and check for faces
-            var photo = await lowLagCapture.CaptureAsync();
-            var bmp = SoftwareBitmap.Convert(photo.Frame.SoftwareBitmap, BitmapPixelFormat.Nv12);
-
-            // Get the jpeg image bytes for this image
             byte[] imageBytes = null;
-            using (var ms = new InMemoryRandomAccessStream())
-            {
-                var jpeg = SoftwareBitmap.Convert(photo.Frame.SoftwareBitmap, BitmapPixelFormat.Rgba16);
-                BitmapEncoder encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.JpegEncoderId, ms);
-                encoder.SetSoftwareBitmap(jpeg);
-                await encoder.FlushAsync();
-                imageBytes = new byte[ms.Size];
-                await ms.ReadAsync(imageBytes.AsBuffer(), (uint)ms.Size, InputStreamOptions.None);
-            }
+            IList<DetectedFace> faces = null;
 
-            // Detect faces
-            IList<DetectedFace> faces = await faceDetector.DetectFacesAsync(bmp);
+            try
+            {
+                var lowLagCapture = await capture.PrepareLowLagPhotoCaptureAsync(ImageEncodingProperties.CreateUncompressed(MediaPixelFormat.Bgra8));
+
+                // Capture a frame and check for faces
+                var photo = await lowLagCapture.CaptureAsync();
+                var bmp = SoftwareBitmap.Convert(photo.Frame.SoftwareBitmap, BitmapPixelFormat.Nv12);
+
+                // Get the jpeg image bytes for this image
+                using (var ms = new InMemoryRandomAccessStream())
+                {
+                    var jpeg = SoftwareBitmap.Convert(photo.Frame.SoftwareBitmap, BitmapPixelFormat.Rgba16);
+                    BitmapEncoder encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.JpegEncoderId, ms);
+                    encoder.SetSoftwareBitmap(jpeg);
+                    await encoder.FlushAsync();
+                    imageBytes = new byte[ms.Size];
+                    await ms.ReadAsync(imageBytes.AsBuffer(), (uint)ms.Size, InputStreamOptions.None);
+                }
+
+                // Detect faces
+                faces = await faceDetector.DetectFacesAsync(bmp);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
 
             // TODO: crop captured picture to only look at user in the center;
             return new ImageWithFaceDetection(imageBytes, faces);
