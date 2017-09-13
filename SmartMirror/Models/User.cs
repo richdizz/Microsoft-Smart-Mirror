@@ -34,6 +34,9 @@ namespace SmartMirror.Models
             this.Preferences.Add(1, "SmartMirror.Controls.ProfilePicPart");
             for (var i = 2; i <= 15; i++)
                 this.Preferences.Add(i, "SmartMirror.Controls.EmptyPart");
+
+            // initialize Face Reco PersonId
+            this.PersonId = Guid.Empty;
         }
 
         public Guid Id { get; set; }
@@ -45,5 +48,7 @@ namespace SmartMirror.Models
         public AuthResult AuthResults { get; set; }
         public byte[] Photo { get; set; }
         public Dictionary<int, string> Preferences { get; set; }
+        // PersonId is the Guid assigned by the Face Reco group when adding a person
+        public Guid PersonId { get; set; }
     }
 }

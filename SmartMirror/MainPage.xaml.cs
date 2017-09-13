@@ -40,6 +40,8 @@ using Windows.Media.SpeechRecognition;
 using Windows.ApplicationModel;
 using Windows.UI.Core;
 using Microsoft.Toolkit.Uwp.UI.Animations;
+using System.Diagnostics;
+using System.Text;
 
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
@@ -57,6 +59,7 @@ namespace SmartMirror
         private int timeoutTicks = 10000; // ticks between checks if the signed in user is still in front of mirror
         private int timeoutCountdown = 15; // seconds before we automatically sign the user out after we determine him away from mirror
         private static string FACE_COGSVC_KEY = "a1be835a55e64469a5d150bff962f15f"; // subscription key for Microsoft Face Cognitive Service
+        private static string FACE_RECO_GROUP_NAME = "smartmirrorrecogroup_950c414a-af4e-4b5f-b32c-be191bc867d5";
         private static string LUIS_COGSVC_KEY = ""; // subscription key for LUIS model
         private ResourceLoader loader = new ResourceLoader();
         private SpeechRecognizer speechRecognizer;
@@ -252,6 +255,16 @@ namespace SmartMirror
                             // Provision User in local storage
                             activeUser = new User(result);
                             activeUser.Photo = results.ImageBytes;
+
+#if !FACE_COMPARISON
+                            // Upload the user image to the Face Reco group and (re)train the model
+                            if (!await AddUserToFaceRecoGroup(activeUser))
+                            {
+                                // TODO: photo rejected by Face Reco - need to prompt them to try again
+                                await speak(new string[] { "Warning: more or less than one face is detected - try again. NOT YET IMPLEMENTED" });
+                                await waitForUser();
+                            }
+#endif
 
                             // Save the user in storage
                             await StorageHelper.SaveUserAsync(activeUser);
@@ -464,6 +477,7 @@ namespace SmartMirror
             return new ImageWithFaceDetection(imageBytes, faces);
         }
 
+#if FACE_COMPARISON
         /// <summary>
         /// Finds an existing registered user that matches the picture passed in (using msft face cog svc)
         /// </summary>
@@ -534,6 +548,200 @@ namespace SmartMirror
                 return 0;
             }
         }
+
+#else
+
+        /// <summary>
+        /// Finds an existing registered user that matches the picture passed in (using msft face cog svc Face Recognition)
+        /// </summary>
+        /// <param name="capturedPictureBytes"></param>
+        /// <returns>Matching User</returns>
+        private async Task<User> getUserMatch(byte[] capturedPictureBytes)
+        {
+            // Ensure person group exists
+            await EnsurePersonGroupExists();
+
+            // get all registered mirror users
+            var users = await StorageHelper.GetUsersAsync();
+
+            // List of  objects to record matches
+            var facesFound = new List<dynamic>();
+
+            var faceServiceClient = new FaceServiceClient(FACE_COGSVC_KEY);
+
+            try
+            {
+                // Check for reco against the existing group
+                var faces = await faceServiceClient.DetectAsync(new MemoryStream(capturedPictureBytes));
+
+
+                // Call identify REST API, the result contains identified person information
+                var identifyResult = await faceServiceClient.IdentifyAsync(FACE_RECO_GROUP_NAME, faces.Select(ff => ff.FaceId).ToArray());
+                for (int idx = 0; idx < faces.Length; idx++)
+                {
+                    // Look at the identified faces and try to match against our known Smart Mirror users
+                    var res = identifyResult[idx];
+                    if (res.Candidates.Length > 0 && users.Any(u => u.PersonId == res.Candidates[0].PersonId))
+                    {
+                        var user = users.Where(p => p.PersonId == res.Candidates[0].PersonId).First();
+                        facesFound.Add(new { Index = idx, Name = user.DisplayName, User = user });
+                    }
+                    else
+                    {
+                        facesFound.Add(new { Index = idx, Name = "Unknown" });
+                    }
+                }
+            }
+            catch (FaceAPIException ex)
+            {
+                if (ex.ErrorCode != "PersonGroupNotTrained")
+                {
+                    throw;
+                }
+                else
+                {
+                    Debug.WriteLine($"Response: Group {FACE_RECO_GROUP_NAME} not trained.");
+                    return null;
+                }
+            }
+
+            var outString = new StringBuilder();
+            foreach (var face in facesFound)
+            {
+                outString.AppendFormat($"Face {face.Index} is identified as {face.Name}. ");
+            }
+            Debug.WriteLine($"Response: Success. {outString}");
+
+            // Return the identified user - 
+            // TODO: Currently returning the first identified face, what to do if there was more than one face found in the captured image?
+            foreach (var face in facesFound)
+            {
+                if (face.Name != "Unknown")
+                {
+                    return face.User;
+                }
+            }
+
+            return null;
+        }
+
+        private async Task EnsurePersonGroupExists()
+        {
+            bool groupExists = false;
+
+            var faceServiceClient = new FaceServiceClient(FACE_COGSVC_KEY);
+
+            // Test whether the group already exists
+            try
+            {
+                Debug.WriteLine($"Request: Group {FACE_RECO_GROUP_NAME} will be used to build a person database. Checking whether the group exists.");
+
+                await faceServiceClient.GetPersonGroupAsync(FACE_RECO_GROUP_NAME);
+                groupExists = true;
+                Debug.WriteLine($"Response: Group {FACE_RECO_GROUP_NAME} exists.");
+            }
+            catch (FaceAPIException ex)
+            {
+                if (ex.ErrorCode != "PersonGroupNotFound")
+                {
+                    throw;
+                }
+                else
+                {
+                    Debug.WriteLine($"Response: Group {FACE_RECO_GROUP_NAME} did not exist previously.");
+                }
+            }
+
+            if (!groupExists)
+            {
+                Debug.WriteLine($"Request: Creating group \"{FACE_RECO_GROUP_NAME}\"");
+                try
+                {
+                    // Create person group API call will failed if group with the same name already exists
+                    await faceServiceClient.CreatePersonGroupAsync(FACE_RECO_GROUP_NAME, FACE_RECO_GROUP_NAME);
+                    Debug.WriteLine($"Response: Success. Group \"{FACE_RECO_GROUP_NAME}\" created");
+                }
+                catch (FaceAPIException ex)
+                {
+                    Debug.WriteLine($"Response: {ex.ErrorCode}. {ex.ErrorMessage}");
+                    throw;
+                }
+            }
+        }
+
+        private async Task<bool> AddUserToFaceRecoGroup(User user)
+        {
+            var faceServiceClient = new FaceServiceClient(FACE_COGSVC_KEY);
+
+            // First ensure we do not inadvertently create any dups
+            var persons = await faceServiceClient.ListPersonsAsync(FACE_RECO_GROUP_NAME);
+            foreach (var person in (persons.Where(p => p.PersonId == user.Id)))
+            {
+                await faceServiceClient.DeletePersonAsync(FACE_RECO_GROUP_NAME, person.PersonId);
+                Debug.WriteLine($"Response: Success. Person \"{user.DisplayName}\" (PersonID:{person.PersonId.ToString()}) removed");
+            }
+            foreach (var person in (persons.Where(p => p.Name== user.DisplayName)))
+            {
+                await faceServiceClient.DeletePersonAsync(FACE_RECO_GROUP_NAME, person.PersonId);
+                Debug.WriteLine($"Response: Success. Person \"{user.DisplayName}\" (PersonID:{person.PersonId.ToString()}) removed");
+            }
+
+            // Call create person REST API, the new create person id will be returned
+            Debug.WriteLine($"Request: Creating person \"{user.DisplayName}\"");
+            user.PersonId = (await faceServiceClient.CreatePersonAsync(FACE_RECO_GROUP_NAME, user.DisplayName)).PersonId;
+            Debug.WriteLine($"Response: Success. Person \"{user.DisplayName}\" (PersonID:{user.PersonId}) created");
+
+            bool tooManyFacesInImage = false;
+            try
+            {
+                // Update person faces on server side
+                var persistFace = await faceServiceClient.AddPersonFaceAsync(FACE_RECO_GROUP_NAME, user.PersonId, new MemoryStream(user.Photo), user.Id.ToString());
+            }
+            catch (FaceAPIException ex)
+            {
+                if (ex.ErrorMessage.Contains("more than 1 face in the image."))
+                {
+                    // Need to prompt user to retry and make sure they are the only one in front of the mirror
+                    Debug.WriteLine($"Response: Failure. more than 1 face in the image");
+                    tooManyFacesInImage = true;
+                }
+            }
+
+            if (tooManyFacesInImage)
+            {
+                Debug.WriteLine("Warning: more or less than one face is detected in the image, can not add to face list.");
+                return false;
+            }
+            Debug.WriteLine("Response: Success. Face image registered.");
+
+            try
+            {
+                // Start train person group
+                Debug.WriteLine($"Request: Training group \"{FACE_RECO_GROUP_NAME}\"");
+                await faceServiceClient.TrainPersonGroupAsync(FACE_RECO_GROUP_NAME);
+
+                // Wait until train completed
+                while (true)
+                {
+                    await Task.Delay(1000);
+                    var status = await faceServiceClient.GetPersonGroupTrainingStatusAsync(FACE_RECO_GROUP_NAME);
+                    Debug.WriteLine($"Response: Success. Group \"{FACE_RECO_GROUP_NAME}\" training process is {status.Status}" );
+                    if (status.Status != Microsoft.ProjectOxford.Face.Contract.Status.Running)
+                    {
+                        break;
+                    }
+                }
+            }
+            catch (FaceAPIException ex)
+            {
+                Debug.WriteLine("Response: {0}. {1}", ex.ErrorCode, ex.ErrorMessage);
+                throw;
+            }
+
+            return true;
+        }
+
+#endif
 
         /// <summary>
         /// Repaints the mirror UI...usually after a resize
@@ -674,7 +882,7 @@ namespace SmartMirror
         private void WebSock_MessageReceived(MessageWebSocket sender, MessageWebSocketMessageReceivedEventArgs args)
         {
             DataReader messageReader = args.GetDataReader();
-            messageReader.UnicodeEncoding = UnicodeEncoding.Utf8;
+            messageReader.UnicodeEncoding = Windows.Storage.Streams.UnicodeEncoding.Utf8;
             string messageString = messageReader.ReadString(messageReader.UnconsumedBufferLength);
 
             // Occasionally, the Direct Line service sends an empty message as a liveness ping. Ignore these messages.
