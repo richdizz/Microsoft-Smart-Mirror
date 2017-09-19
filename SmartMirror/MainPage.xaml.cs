@@ -145,9 +145,9 @@ namespace SmartMirror
                 this.faceDetector = await FaceDetector.CreateAsync();
             }
 
-            if (forceFirstUser)
+            var users = await StorageHelper.GetUsersAsync();
+            if (forceFirstUser && users.Count > 0)
             {
-                var users = await StorageHelper.GetUsersAsync();
                 activeUser = users[0];
                 Random rand = new Random();
                 var statement = String.Format(loader.GetString("WelcomeBack" + rand.Next(6)), activeUser.GivenName);
