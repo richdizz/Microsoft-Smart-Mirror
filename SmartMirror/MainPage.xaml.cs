@@ -42,6 +42,7 @@ using Windows.UI.Core;
 using Microsoft.Toolkit.Uwp.UI.Animations;
 using System.Diagnostics;
 using System.Text;
+using Windows.Devices.Enumeration;
 
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
@@ -56,14 +57,14 @@ namespace SmartMirror
         private User activeUser;
         private AuthenticationContext ctx = new AuthenticationContext(AuthHelper.AUTHORITY, false, new TokenCache());
         private Queue<string> statementQueue = new Queue<string>();
-        private int timeoutTicks = 10000; // ticks between checks if the signed in user is still in front of mirror
-        private int timeoutCountdown = 15; // seconds before we automatically sign the user out after we determine him away from mirror
+        private int timeoutTicks = 100000; // ticks between checks if the signed in user is still in front of mirror
+        private int timeoutCountdown = 1000; // seconds before we automatically sign the user out after we determine him away from mirror
         private static string FACE_COGSVC_KEY = "a1be835a55e64469a5d150bff962f15f"; // subscription key for Microsoft Face Cognitive Service
         private static string FACE_RECO_GROUP_NAME = "smartmirrorrecogroup_950c414a-af4e-4b5f-b32c-be191bc867d5";
-        private static string LUIS_COGSVC_KEY = ""; // subscription key for LUIS model
+        private static string LUIS_COGSVC_KEY = "6879f9dd46e3476fbf0f95e9c118fe29"; // subscription key for LUIS model
         private ResourceLoader loader = new ResourceLoader();
         private SpeechRecognizer speechRecognizer;
-        private static string directLineSecret = "";
+        private static string directLineSecret = "sbnacTqQoeM.cwA.Cgo.fXlrtx5GtXTKcGY50wTiGRG5mNzCj8-grm4MsdcG8GE";
         private static string botId = "MsftSmartMirror";
         private bool inEditMode = false;
         private FaceDetector faceDetector;
@@ -77,9 +78,10 @@ namespace SmartMirror
             { 'C', new WidgetOption("Daily agenda", "SmartMirror.Controls.ProfilePicPart") },
             { 'D', new WidgetOption("Weather", "SmartMirror.Controls.ProfilePicPart") },
             { 'E', new WidgetOption("Inbox", "SmartMirror.Controls.ProfilePicPart") },
-            { 'F', new WidgetOption("Stocks", "SmartMirror.Controls.ProfilePicPart") },
-            { 'G', new WidgetOption("News", "SmartMirror.Controls.ProfilePicPart") },
-            { 'H', new WidgetOption("Clock", "SmartMirror.Controls.ClockPart") }
+            { 'F', new WidgetOption("Trending info", "SmartMirror.Controls.ProfilePicPart") },
+            { 'G', new WidgetOption("Stocks", "SmartMirror.Controls.ProfilePicPart") },
+            { 'H', new WidgetOption("News", "SmartMirror.Controls.ProfilePicPart") },
+            { 'I', new WidgetOption("Clock", "SmartMirror.Controls.ClockPart") }
         };
         private Dictionary<string, int> numMapping = new Dictionary<string, int>()
         {
@@ -109,8 +111,8 @@ namespace SmartMirror
 
             // Setup default view of fullscreen
             //TODO: undo the comment-out
-            //ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.FullScreen;
-            //ApplicationView.GetForCurrentView().TryEnterFullScreenMode();
+            ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.FullScreen;
+            ApplicationView.GetForCurrentView().TryEnterFullScreenMode();
         }
 
         private async void MainPage_Loaded(object sender, RoutedEventArgs e)
@@ -122,8 +124,19 @@ namespace SmartMirror
             // Initialize MediaCapture and FaceDetector
             if (this.capture == null)
             {
+                // Choose the first externally plugged in camera found 
+                var cameras = await DeviceInformation.FindAllAsync(DeviceClass.VideoCapture);
+                var preferredCamera = cameras.FirstOrDefault(deviceInfo => deviceInfo.EnclosureLocation == null);
+
+                // If no external camera, choose the front facing camera ELSE choose the first available camera found 
+                if (preferredCamera == null)
+                    preferredCamera = cameras.FirstOrDefault(deviceInfo => deviceInfo.EnclosureLocation?.Panel == Windows.Devices.Enumeration.Panel.Front) ?? cameras.FirstOrDefault();
+
                 capture = new MediaCapture();
-                await capture.InitializeAsync();
+                await capture.InitializeAsync(new MediaCaptureInitializationSettings()
+                {
+                    VideoDeviceId = preferredCamera.Id
+                });
             }
 
             if (this.faceDetector == null)
@@ -220,78 +233,94 @@ namespace SmartMirror
         /// <returns></returns>
         private async Task waitForUser()
         {
-            // Go into loop looking for faces
-            IList<DetectedFace> faces = new List<DetectedFace>();
-            while (faces.Count == 0)
+            try
             {
-                var results = await detectFaces();
-                faces = results.Faces;
-                if (faces.Count == 0)
+                // Go into loop looking for faces
+                IList<DetectedFace> faces = new List<DetectedFace>();
+                while (faces.Count == 0)
                 {
-                    // wait one second and then look again
-                    var timer = Task.Delay(1000);
-                    await timer;
-                }
-                else
-                {
-                    // get user match from picture
-                    activeUser = await getUserMatch(results.ImageBytes);
-
-                    // See if we found a match
-                    if (activeUser == null)
+                    var results = await detectFaces();
+                    faces = results.Faces;
+                    if (faces.Count == 0)
                     {
-                        // This is a new user...prompt them to sign-in using device code flow
-                        var codeResult = await ctx.AcquireDeviceCodeAsync(AuthHelper.GRAPH_RESOURCE, AuthHelper.CLIENT_ID);
-                        tbMessage.Text = codeResult.Message;
-#if DEBUG                        
-                        // Convenience for debugging
-                        await Windows.System.Launcher.LaunchUriAsync(new Uri("https://aka.ms/devicelogin"));
-#endif
-                        var result = await AuthHelper.AcquireTokenByDeviceCodeAsync(codeResult);
-                        if (result == null)
-                            await waitForUser();
-                        else
-                        {
-                            // Provision User in local storage
-                            activeUser = new User(result);
-                            activeUser.Photo = results.ImageBytes;
-
-#if !FACE_COMPARISON
-                            // Upload the user image to the Face Reco group and (re)train the model
-                            if (!await AddUserToFaceRecoGroup(activeUser))
-                            {
-                                // TODO: photo rejected by Face Reco - need to prompt them to try again
-                                await speak(new string[] { "Warning: more or less than one face is detected - try again. NOT YET IMPLEMENTED" });
-                                await waitForUser();
-                            }
-#endif
-
-                            // Save the user in storage
-                            await StorageHelper.SaveUserAsync(activeUser);
-                            await speak(new string[] { String.Format(loader.GetString("Welcome"), activeUser.GivenName), loader.GetString("GetStarted"), loader.GetString("ConfigInstructions") });
-                            repaint(this.RenderSize);
-                            await waitForUserExit(timeoutTicks);
-                        }
+                        // wait one second and then look again
+                        var timer = Task.Delay(1000);
+                        await timer;
                     }
                     else
                     {
-                        // Try to get new token for the user
-                        var token = await AuthHelper.AcquireTokenWithRefreshTokenAsync(activeUser.AuthResults.refresh_token, AuthHelper.GRAPH_RESOURCE);
-                        if (token == null)
+                        // get user match from picture
+                        activeUser = await getUserMatch(results.ImageBytes);
+
+                        // See if we found a match
+                        if (activeUser == null)
                         {
-                            // This is an existing user, but their token is expired
+                            // This is a new user...prompt them to sign-in using device code flow
                             var codeResult = await ctx.AcquireDeviceCodeAsync(AuthHelper.GRAPH_RESOURCE, AuthHelper.CLIENT_ID);
                             tbMessage.Text = codeResult.Message;
+#if DEBUG
+                            // Convenience for debugging
+                            //                        await Windows.System.Launcher.LaunchUriAsync(new Uri("https://aka.ms/devicelogin"));
+#endif
                             var result = await AuthHelper.AcquireTokenByDeviceCodeAsync(codeResult);
                             if (result == null)
                                 await waitForUser();
                             else
                             {
-                                // update the user's tokens
-                                activeUser.AuthResults = result;
+                                // Provision User in local storage
+                                activeUser = new User(result);
+                                activeUser.Photo = results.ImageBytes;
+
+#if !FACE_COMPARISON
+                                // Upload the user image to the Face Reco group and (re)train the model
+                                if (!await AddUserToFaceRecoGroup(activeUser))
+                                {
+                                    // TODO: photo rejected by Face Reco - need to prompt them to try again
+                                    await speak(new string[] { "Warning: more or less than one face is detected - try again. NOT YET IMPLEMENTED" });
+                                    await waitForUser();
+                                }
+#endif
 
                                 // Save the user in storage
                                 await StorageHelper.SaveUserAsync(activeUser);
+                                await speak(new string[] { String.Format(loader.GetString("Welcome"), activeUser.GivenName), loader.GetString("GetStarted"), loader.GetString("ConfigInstructions") });
+                                repaint(this.RenderSize);
+                                await waitForUserExit(timeoutTicks);
+                            }
+                        }
+                        else
+                        {
+                            // Try to get new token for the user
+                            var token = await AuthHelper.AcquireTokenWithRefreshTokenAsync(activeUser.AuthResults.refresh_token, AuthHelper.GRAPH_RESOURCE);
+                            if (token == null)
+                            {
+                                // This is an existing user, but their token is expired
+                                var codeResult = await ctx.AcquireDeviceCodeAsync(AuthHelper.GRAPH_RESOURCE, AuthHelper.CLIENT_ID);
+                                tbMessage.Text = codeResult.Message;
+                                var result = await AuthHelper.AcquireTokenByDeviceCodeAsync(codeResult);
+                                if (result == null)
+                                    await waitForUser();
+                                else
+                                {
+                                    // update the user's tokens
+                                    activeUser.AuthResults = result;
+
+                                    // Save the user in storage
+                                    await StorageHelper.SaveUserAsync(activeUser);
+                                    Random rand = new Random();
+                                    var statement = String.Format(loader.GetString("WelcomeBack" + rand.Next(6)), activeUser.GivenName);
+                                    await speak(statement);
+                                    repaint(this.RenderSize);
+                                    await waitForUserExit(timeoutTicks);
+                                }
+                            }
+                            else
+                            {
+                                // This is an existing user and their token is good...update it in storage
+                                activeUser.AuthResults = token;
+                                await StorageHelper.SaveUserAsync(activeUser);
+
+                                // Welcome the user
                                 Random rand = new Random();
                                 var statement = String.Format(loader.GetString("WelcomeBack" + rand.Next(6)), activeUser.GivenName);
                                 await speak(statement);
@@ -299,21 +328,12 @@ namespace SmartMirror
                                 await waitForUserExit(timeoutTicks);
                             }
                         }
-                        else
-                        {
-                            // This is an existing user and their token is good...update it in storage
-                            activeUser.AuthResults = token;
-                            await StorageHelper.SaveUserAsync(activeUser);
-
-                            // Welcome the user
-                            Random rand = new Random();
-                            var statement = String.Format(loader.GetString("WelcomeBack" + rand.Next(6)), activeUser.GivenName);
-                            await speak(statement);
-                            repaint(this.RenderSize);
-                            await waitForUserExit(timeoutTicks);
-                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                
             }
         }
 
