@@ -54,7 +54,8 @@ namespace SmartMirror
     /// </summary>
     public sealed partial class MainPage : Page
     {
-        private User activeUser;
+        private bool forceFirstUser = true; // this is a hack to force sign-in of the first user in storage
+        private User activeUser; // this represents the user currently signed into the mirror
         private AuthenticationContext ctx = new AuthenticationContext(AuthHelper.AUTHORITY, false, new TokenCache());
         private Queue<string> statementQueue = new Queue<string>();
         private int timeoutTicks = 100000; // ticks between checks if the signed in user is still in front of mirror
@@ -75,13 +76,14 @@ namespace SmartMirror
         {
             { 'A', new WidgetOption("Empty", "SmartMirror.Controls.EmptyPart") },
             { 'B', new WidgetOption("Profile picture", "SmartMirror.Controls.ProfilePicPart") },
-            { 'C', new WidgetOption("Red Square", "SmartMirror.Controls.RedSquare") },
+            { 'C', new WidgetOption("Daily agenda", "SmartMirror.Controls.AgendaPart") },
             { 'D', new WidgetOption("Weather", "SmartMirror.Controls.ProfilePicPart") },
             { 'E', new WidgetOption("Inbox", "SmartMirror.Controls.ProfilePicPart") },
             { 'F', new WidgetOption("Trending info", "SmartMirror.Controls.ProfilePicPart") },
             { 'G', new WidgetOption("Stocks", "SmartMirror.Controls.ProfilePicPart") },
             { 'H', new WidgetOption("News", "SmartMirror.Controls.ProfilePicPart") },
-            { 'I', new WidgetOption("Clock", "SmartMirror.Controls.ClockPart") }
+            { 'I', new WidgetOption("Clock", "SmartMirror.Controls.ClockPart") },
+            { 'I', new WidgetOption("Work Analytics", "SmartMirror.Controls.WorkAnalyticsPart") }
         };
         private Dictionary<string, int> numMapping = new Dictionary<string, int>()
         {
@@ -144,7 +146,18 @@ namespace SmartMirror
                 this.faceDetector = await FaceDetector.CreateAsync();
             }
 
-            await waitForUser();
+            // the following is a hack for skipping facial recognition for developers
+            var users = await StorageHelper.GetUsersAsync();
+            if (forceFirstUser && users.Count > 0)
+            {
+                activeUser = users[0];
+                Random rand = new Random();
+                var statement = String.Format(loader.GetString("WelcomeBack" + rand.Next(6)), activeUser.GivenName);
+                await speak(statement);
+                repaint(this.RenderSize);
+            }
+            else
+                await waitForUser();
         }
 
         /// <summary>
@@ -213,17 +226,9 @@ namespace SmartMirror
                     {
                         text = text.Substring(text.IndexOf("add") + 4).Trim();
                         var parts = text.Split(' ');
-
-                        var widgetName = Convert.ToChar(parts[0].ToUpper());
-                        var locationNumber = parts[parts.Length - 1];
-
-                        // Catch scenarios where the string doesn't match the fields
-                        // also known as the BadAustralianAccentExceptionHandler
-                        if (availableWidgets.ContainsKey(widgetName) && numMapping.ContainsKey(locationNumber) && activeUser.Preferences.ContainsKey(numMapping[locationNumber]))
-                        {
-                            activeUser.Preferences[numMapping[parts[parts.Length - 1]]] = availableWidgets[widgetName].ClassName;
-                            repaint(this.RenderSize);
-                        }
+                        activeUser.Preferences[numMapping[parts[parts.Length - 1]]] = availableWidgets[Convert.ToChar(parts[0].ToUpper())].ClassName;
+                        await StorageHelper.SaveUserAsync(activeUser);
+                        repaint(this.RenderSize);
                     }
                 });
             };
@@ -232,15 +237,8 @@ namespace SmartMirror
                 //TODO
             };
 
-            try
-            {
-                // Start the speechRecognizer with continuous recognition
-                await speechRecognizer.ContinuousRecognitionSession.StartAsync();
-            }
-            catch(Exception e)
-            {
-                var b = e;
-            }
+            // Start the speechRecognizer with continuous recognition
+            await speechRecognizer.ContinuousRecognitionSession.StartAsync();
         }
 
         /// <summary>
@@ -349,7 +347,7 @@ namespace SmartMirror
             }
             catch (Exception ex)
             {
-                
+                //TODO ???
             }
         }
 

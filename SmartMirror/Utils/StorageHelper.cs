@@ -48,6 +48,7 @@ namespace SmartMirror.Utils
                 {
                     dbUser = users[i];
                     dbUser.AuthResults = user.AuthResults;
+                    dbUser.Preferences = user.Preferences;
 
                     // Update the Face Reco PersonId
                     users[i].PersonId = user.PersonId;

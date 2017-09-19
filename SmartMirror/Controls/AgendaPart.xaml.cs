@@ -1,9 +1,9 @@
-﻿using System;
+﻿using SmartMirror.Models;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
-using SmartMirror.Models;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
@@ -13,30 +13,23 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
-using System.Threading.Tasks;
 
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 
 namespace SmartMirror.Controls
 {
-    public sealed partial class ClockPart : MirrorPartBase
+    public sealed partial class AgendaPart : MirrorPartBase
     {
-        public ClockPart()
+        public AgendaPart()
         {
             this.InitializeComponent();
-            this.Loaded += ClockPart_Loaded;
         }
 
-        private async void ClockPart_Loaded(object sender, RoutedEventArgs e)
+        public async override void Initialize(User user, bool isEditMode = false)
         {
-            await updateTime();
-        }
+            base.Initialize(user, isEditMode);
 
-        private async Task updateTime()
-        {
-            theTime.Text = DateTime.Now.ToString("T");
-            await Task.Delay(1000);
-            await updateTime();
+
         }
     }
 }

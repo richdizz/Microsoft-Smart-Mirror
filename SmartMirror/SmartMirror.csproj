@@ -95,6 +95,9 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\AgendaPart.xaml.cs">
+      <DependentUpon>AgendaPart.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\ClockPart.xaml.cs">
       <DependentUpon>ClockPart.xaml</DependentUpon>
     </Compile>
@@ -104,6 +107,9 @@
     </Compile>
     <Compile Include="Controls\ProfilePicPart.xaml.cs">
       <DependentUpon>ProfilePicPart.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\WorkAnalyticsPart.xaml.cs">
+      <DependentUpon>WorkAnalyticsPart.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converters\ValueToVisibilityConverter.cs" />
     <Compile Include="Data\AudioRecorder.cs" />
@@ -201,6 +207,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="Controls\AgendaPart.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Controls\ClockPart.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -210,6 +220,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\ProfilePicPart.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\WorkAnalyticsPart.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
