@@ -95,6 +95,9 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\AgendaPart.xaml.cs">
+      <DependentUpon>AgendaPart.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\ClockPart.xaml.cs">
       <DependentUpon>ClockPart.xaml</DependentUpon>
     </Compile>
@@ -201,6 +204,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="Controls\AgendaPart.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Controls\ClockPart.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

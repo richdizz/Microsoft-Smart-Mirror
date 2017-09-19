@@ -76,7 +76,7 @@ namespace SmartMirror
         {
             { 'A', new WidgetOption("Empty", "SmartMirror.Controls.EmptyPart") },
             { 'B', new WidgetOption("Profile picture", "SmartMirror.Controls.ProfilePicPart") },
-            { 'C', new WidgetOption("Daily agenda", "SmartMirror.Controls.ProfilePicPart") },
+            { 'C', new WidgetOption("Daily agenda", "SmartMirror.Controls.AgendaPart") },
             { 'D', new WidgetOption("Weather", "SmartMirror.Controls.ProfilePicPart") },
             { 'E', new WidgetOption("Inbox", "SmartMirror.Controls.ProfilePicPart") },
             { 'F', new WidgetOption("Trending info", "SmartMirror.Controls.ProfilePicPart") },
