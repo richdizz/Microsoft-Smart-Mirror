@@ -75,7 +75,7 @@ namespace SmartMirror
         {
             { 'A', new WidgetOption("Empty", "SmartMirror.Controls.EmptyPart") },
             { 'B', new WidgetOption("Profile picture", "SmartMirror.Controls.ProfilePicPart") },
-            { 'C', new WidgetOption("Daily agenda", "SmartMirror.Controls.ProfilePicPart") },
+            { 'C', new WidgetOption("Red Square", "SmartMirror.Controls.RedSquare") },
             { 'D', new WidgetOption("Weather", "SmartMirror.Controls.ProfilePicPart") },
             { 'E', new WidgetOption("Inbox", "SmartMirror.Controls.ProfilePicPart") },
             { 'F', new WidgetOption("Trending info", "SmartMirror.Controls.ProfilePicPart") },
@@ -213,8 +213,17 @@ namespace SmartMirror
                     {
                         text = text.Substring(text.IndexOf("add") + 4).Trim();
                         var parts = text.Split(' ');
-                        activeUser.Preferences[numMapping[parts[parts.Length - 1]]] = availableWidgets[Convert.ToChar(parts[0].ToUpper())].ClassName;
-                        repaint(this.RenderSize);
+
+                        var widgetName = Convert.ToChar(parts[0].ToUpper());
+                        var locationNumber = parts[parts.Length - 1];
+
+                        // Catch scenarios where the string doesn't match the fields
+                        // also known as the BadAustralianAccentExceptionHandler
+                        if (availableWidgets.ContainsKey(widgetName) && numMapping.ContainsKey(locationNumber) && activeUser.Preferences.ContainsKey(numMapping[locationNumber]))
+                        {
+                            activeUser.Preferences[numMapping[parts[parts.Length - 1]]] = availableWidgets[widgetName].ClassName;
+                            repaint(this.RenderSize);
+                        }
                     }
                 });
             };
@@ -223,8 +232,15 @@ namespace SmartMirror
                 //TODO
             };
 
-            // Start the speechRecognizer with continuous recognition
-            await speechRecognizer.ContinuousRecognitionSession.StartAsync();
+            try
+            {
+                // Start the speechRecognizer with continuous recognition
+                await speechRecognizer.ContinuousRecognitionSession.StartAsync();
+            }
+            catch(Exception e)
+            {
+                var b = e;
+            }
         }
 
         /// <summary>
