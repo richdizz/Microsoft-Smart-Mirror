@@ -150,11 +150,17 @@ namespace SmartMirror
             var users = await StorageHelper.GetUsersAsync();
             if (forceFirstUser && users.Count > 0)
             {
-                activeUser = users[0];
-                Random rand = new Random();
-                var statement = String.Format(loader.GetString("WelcomeBack" + rand.Next(6)), activeUser.GivenName);
-                await speak(statement);
-                repaint(this.RenderSize);
+                var result = await AuthHelper.AcquireTokenWithRefreshTokenAsync(users[0].AuthResults.refresh_token, AuthHelper.GRAPH_RESOURCE);
+                if (result == null)
+                    await waitForUser();
+                else
+                {
+                    activeUser = users[0];
+                    Random rand = new Random();
+                    var statement = String.Format(loader.GetString("WelcomeBack" + rand.Next(6)), activeUser.GivenName);
+                    await speak(statement);
+                    repaint(this.RenderSize);
+                }
             }
             else
                 await waitForUser();
