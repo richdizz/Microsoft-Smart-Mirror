@@ -226,9 +226,18 @@ namespace SmartMirror
                     {
                         text = text.Substring(text.IndexOf("add") + 4).Trim();
                         var parts = text.Split(' ');
-                        activeUser.Preferences[numMapping[parts[parts.Length - 1]]] = availableWidgets[Convert.ToChar(parts[0].ToUpper())].ClassName;
-                        await StorageHelper.SaveUserAsync(activeUser);
-                        repaint(this.RenderSize);
+
+                        var widgetName = Convert.ToChar(parts[0].ToUpper());
+                        var locationNumber = parts[parts.Length - 1];
+
+                        // Catch scenarios where the string doesn't match the fields
+                        // also known as the BadAustralianAccentExceptionHandler
+                        if (availableWidgets.ContainsKey(widgetName) && numMapping.ContainsKey(locationNumber) && activeUser.Preferences.ContainsKey(numMapping[locationNumber]))
+                        {
+                            activeUser.Preferences[numMapping[parts[parts.Length - 1]]] = availableWidgets[widgetName].ClassName;
+                            await StorageHelper.SaveUserAsync(activeUser);
+                            repaint(this.RenderSize);
+                        }
                     }
                 });
             };
