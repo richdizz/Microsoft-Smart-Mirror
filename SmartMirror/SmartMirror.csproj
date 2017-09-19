@@ -108,6 +108,9 @@
     <Compile Include="Controls\ProfilePicPart.xaml.cs">
       <DependentUpon>ProfilePicPart.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\WorkAnalyticsPart.xaml.cs">
+      <DependentUpon>WorkAnalyticsPart.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Converters\ValueToVisibilityConverter.cs" />
     <Compile Include="Data\AudioRecorder.cs" />
     <Compile Include="Data\SpeechToText.cs" />
@@ -217,6 +220,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\ProfilePicPart.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\WorkAnalyticsPart.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -18,9 +18,9 @@ using Windows.UI.Xaml.Navigation;
 
 namespace SmartMirror.Controls
 {
-    public sealed partial class AgendaPart : MirrorPartBase
+    public sealed partial class WorkAnalyticsPart : MirrorPartBase
     {
-        public AgendaPart()
+        public WorkAnalyticsPart()
         {
             this.InitializeComponent();
         }

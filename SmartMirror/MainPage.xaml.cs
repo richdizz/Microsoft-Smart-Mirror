@@ -82,7 +82,8 @@ namespace SmartMirror
             { 'F', new WidgetOption("Trending info", "SmartMirror.Controls.ProfilePicPart") },
             { 'G', new WidgetOption("Stocks", "SmartMirror.Controls.ProfilePicPart") },
             { 'H', new WidgetOption("News", "SmartMirror.Controls.ProfilePicPart") },
-            { 'I', new WidgetOption("Clock", "SmartMirror.Controls.ClockPart") }
+            { 'I', new WidgetOption("Clock", "SmartMirror.Controls.ClockPart") },
+            { 'I', new WidgetOption("Work Analytics", "SmartMirror.Controls.WorkAnalyticsPart") }
         };
         private Dictionary<string, int> numMapping = new Dictionary<string, int>()
         {
