@@ -54,6 +54,7 @@ namespace SmartMirror
     /// </summary>
     public sealed partial class MainPage : Page
     {
+        private bool forceFirstUser = true; // this is a hack to force sign-in of the first user in storage
         private User activeUser;
         private AuthenticationContext ctx = new AuthenticationContext(AuthHelper.AUTHORITY, false, new TokenCache());
         private Queue<string> statementQueue = new Queue<string>();
@@ -144,7 +145,17 @@ namespace SmartMirror
                 this.faceDetector = await FaceDetector.CreateAsync();
             }
 
-            await waitForUser();
+            if (forceFirstUser)
+            {
+                var users = await StorageHelper.GetUsersAsync();
+                activeUser = users[0];
+                Random rand = new Random();
+                var statement = String.Format(loader.GetString("WelcomeBack" + rand.Next(6)), activeUser.GivenName);
+                await speak(statement);
+                repaint(this.RenderSize);
+            }
+            else
+                await waitForUser();
         }
 
         /// <summary>
@@ -333,7 +344,7 @@ namespace SmartMirror
             }
             catch (Exception ex)
             {
-                
+                //TODO ???
             }
         }
 
