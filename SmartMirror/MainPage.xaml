@@ -10,7 +10,7 @@
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Name="mainView">
         <TextBlock Name="tbMessage" FontSize="32" VerticalAlignment="Center" HorizontalAlignment="Center" 
                    TextWrapping="Wrap" TextAlignment="Center"></TextBlock>
-        <TextBlock Name="tbOptions" FontSize="64" Visibility="Collapsed"></TextBlock>
+        <TextBlock Name="tbOptions" FontSize="36" Visibility="Collapsed"></TextBlock>
         <MediaElement Name="mediaElement"></MediaElement>
     </Grid>
 </Page>
