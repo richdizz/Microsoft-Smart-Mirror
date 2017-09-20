@@ -78,10 +78,10 @@ namespace SmartMirror
             { 'B', new WidgetOption("Profile picture", "SmartMirror.Controls.ProfilePicPart") },
             { 'C', new WidgetOption("Daily agenda", "SmartMirror.Controls.AgendaPart") },
             { 'D', new WidgetOption("Weather", "SmartMirror.Controls.ProfilePicPart") },
-            { 'E', new WidgetOption("Inbox", "SmartMirror.Controls.ProfilePicPart") },
-            { 'F', new WidgetOption("Trending info", "SmartMirror.Controls.ProfilePicPart") },
-            { 'G', new WidgetOption("Stocks", "SmartMirror.Controls.ProfilePicPart") },
-            { 'H', new WidgetOption("News", "SmartMirror.Controls.ProfilePicPart") },
+            { 'E', new WidgetOption("Inbox", "SmartMirror.Controls.InboxPart") },
+            { 'F', new WidgetOption("Trending info", "SmartMirror.Controls.TrendingPart") },
+            { 'G', new WidgetOption("Stocks", "SmartMirror.Controls.StocksPart") },
+            { 'H', new WidgetOption("News", "SmartMirror.Controls.NewsPart") },
             { 'I', new WidgetOption("Clock", "SmartMirror.Controls.ClockPart") },
             { 'J', new WidgetOption("Work Analytics", "SmartMirror.Controls.WorkAnalyticsPart") }
         };

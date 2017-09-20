@@ -101,12 +101,24 @@
     <Compile Include="Controls\ClockPart.xaml.cs">
       <DependentUpon>ClockPart.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\InboxPart.xaml.cs">
+      <DependentUpon>InboxPart.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\MirrorPartBase.cs" />
     <Compile Include="Controls\EmptyPart.xaml.cs">
       <DependentUpon>EmptyPart.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\NewsPart.xaml.cs">
+      <DependentUpon>NewsPart.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\ProfilePicPart.xaml.cs">
       <DependentUpon>ProfilePicPart.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\StocksPart.xaml.cs">
+      <DependentUpon>StocksPart.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\TrendingPart.xaml.cs">
+      <DependentUpon>TrendingPart.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\WorkAnalyticsPart.xaml.cs">
       <DependentUpon>WorkAnalyticsPart.xaml</DependentUpon>
@@ -219,7 +231,23 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Controls\InboxPart.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\NewsPart.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Controls\ProfilePicPart.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\StocksPart.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\TrendingPart.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
