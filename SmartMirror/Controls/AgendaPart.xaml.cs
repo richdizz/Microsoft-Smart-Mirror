@@ -85,13 +85,19 @@ namespace SmartMirror.Controls
                             var thisDate = DateTime.Parse(evt.SelectToken("start.dateTime").Value<string>() + "+00").ToString("D");
                             if (thisDate != dateIndex)
                             {
-                                dateIndex = thisDate;
-                                addDateHeader(dateIndex);
+                                // remove this condition to show more than one calendar item
+                                if (dateIndex == "")
+                                {
+                                    dateIndex = thisDate;
+                                    addDateHeader(dateIndex);
+                                }
+                                else
+                                    break;
                             }
 
                             // parse the start and end date which are stored in UTC time
-                            DateTime start = DateTime.Parse(evt.SelectToken("start.dateTime").Value<string>() + "+00");
-                            DateTime end = DateTime.Parse(evt.SelectToken("end.dateTime").Value<string>() + "+00");
+                            DateTime start = DateTime.Parse(evt.SelectToken("start.dateTime").Value<string>() + "+00", new CultureInfo("en-US"));
+                            DateTime end = DateTime.Parse(evt.SelectToken("end.dateTime").Value<string>() + "+00", new CultureInfo("en-US"));
                             string subject = evt.SelectToken("subject").Value<string>();
                             string bodyPreview = evt.SelectToken("bodyPreview").Value<string>();
                             
@@ -116,6 +122,7 @@ namespace SmartMirror.Controls
                             Grid.SetColumn(sp, 1);
 
                             TextBlock tbTime = new TextBlock();
+                            tbTime.Padding = new Thickness(20,0,0,0);
                             tbTime.Width = this.ActualWidth - 60;
                             tbTime.Text = $"{start.ToString("h:mm tt")} - {end.ToString("h:mm tt")}";
                             tbTime.FontSize = 24;
@@ -123,6 +130,7 @@ namespace SmartMirror.Controls
                             sp.Children.Add(tbTime);
 
                             TextBlock tbSubject = new TextBlock();
+                            tbSubject.Padding = new Thickness(20, 0, 0, 0);
                             tbSubject.Width = this.ActualWidth - 60;
                             tbSubject.Text = subject;
                             tbSubject.FontSize = 18;

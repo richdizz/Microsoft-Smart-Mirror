@@ -6,11 +6,14 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" SizeChanged="Page_SizeChanged">
+    <Grid>
+        <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Name="mainView">
+            <TextBlock Name="tbOptions" FontSize="36" VerticalAlignment="top" HorizontalAlignment="Center" Visibility="Collapsed"></TextBlock>
+            <MediaElement Name="mediaElement"></MediaElement>
+        </Grid>
 
-    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Name="mainView">
-        <TextBlock Name="tbMessage" FontSize="32" VerticalAlignment="Center" HorizontalAlignment="Center" 
-                   TextWrapping="Wrap" TextAlignment="Center"></TextBlock>
-        <TextBlock Name="tbOptions" FontSize="36" Visibility="Collapsed"></TextBlock>
-        <MediaElement Name="mediaElement"></MediaElement>
+        <TextBlock Name="tbMessage" FontSize="32" VerticalAlignment="Bottom" HorizontalAlignment="Center" 
+                   TextWrapping="Wrap" TextAlignment="Center" Margin="0 0 0 50"></TextBlock>
     </Grid>
+    
 </Page>
