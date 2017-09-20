@@ -156,6 +156,7 @@ namespace SmartMirror
                 else
                 {
                     activeUser = users[0];
+                    activeUser.AuthResults = result;
                     Random rand = new Random();
                     var statement = String.Format(loader.GetString("WelcomeBack" + rand.Next(6)), activeUser.GivenName);
                     await speak(statement);
@@ -289,7 +290,7 @@ namespace SmartMirror
                             tbMessage.Text = codeResult.Message;
 #if DEBUG
                             // Convenience for debugging
-                            //                        await Windows.System.Launcher.LaunchUriAsync(new Uri("https://aka.ms/devicelogin"));
+                            await Windows.System.Launcher.LaunchUriAsync(new Uri("https://aka.ms/devicelogin"));
 #endif
                             var result = await AuthHelper.AcquireTokenByDeviceCodeAsync(codeResult);
                             if (result == null)

@@ -8,8 +8,12 @@
     mc:Ignorable="d">
 
     <Grid>
-        <Line StrokeThickness="3" HorizontalAlignment="Left" Margin="20 0 0 0"
+        <Line StrokeThickness="3" HorizontalAlignment="Left" Margin="40 0 0 0"
               VerticalAlignment="Stretch" Y2="1" Stretch="Fill" 
-              StrokeEndLineCap="Square" StrokeStartLineCap="Square" Stroke="White" />
+              StrokeEndLineCap="Square" StrokeStartLineCap="Square" Stroke="White" 
+              Visibility="Collapsed" Name="timeline" />
+        <StackPanel Orientation="Vertical" Name="agendaPanel">
+            
+        </StackPanel>
     </Grid>
 </local:MirrorPartBase>
