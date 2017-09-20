@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SmartMirror.Models;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -33,7 +34,7 @@ namespace SmartMirror.Controls
             HttpClient client = new HttpClient();
             client.DefaultRequestHeaders.Add("Accept", "application/json");
             client.DefaultRequestHeaders.Add("Authorization", "Bearer " + user.AuthResults.access_token);
-            using (var resp = await client.GetAsync($"https://graph.microsoft.com/beta/me/insights/trending"))
+            using (var resp = await client.GetAsync($"https://graph.microsoft.com/beta/me?$expand=extensions($filter=id eq 'MSMPrevDaySentiment')"))
             {
             }
         }
