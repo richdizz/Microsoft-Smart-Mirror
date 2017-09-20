@@ -10,6 +10,11 @@
     d:DesignWidth="400">
 
     <Grid>
-
+        <Line StrokeThickness="3" HorizontalAlignment="Left" Margin="20 0 0 0"
+              VerticalAlignment="Stretch" Y2="1" Stretch="Fill" 
+              StrokeEndLineCap="Square" StrokeStartLineCap="Square" Stroke="White" 
+              Visibility="Collapsed" Name="messageBox" />
+        <StackPanel Orientation="Vertical" Name="inboxPanel">
+        </StackPanel>
     </Grid>
 </local:MirrorPartBase>
