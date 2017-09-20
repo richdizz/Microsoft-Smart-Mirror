@@ -19,9 +19,9 @@ using Windows.UI.Xaml.Navigation;
 
 namespace SmartMirror.Controls
 {
-    public sealed partial class TrendingPart : MirrorPartBase
+    public sealed partial class MailSentimentPart : MirrorPartBase
     {
-        public TrendingPart()
+        public MailSentimentPart()
         {
             this.InitializeComponent();
         }
@@ -30,11 +30,11 @@ namespace SmartMirror.Controls
         {
             base.Initialize(user, isEditMode);
 
-            // Query trending information for the user
+            // First check if we have previous day sentiment score in schema extension
             HttpClient client = new HttpClient();
             client.DefaultRequestHeaders.Add("Accept", "application/json");
             client.DefaultRequestHeaders.Add("Authorization", "Bearer " + user.AuthResults.access_token);
-            using (var resp = await client.GetAsync($"https://graph.microsoft.com/beta/me/insights/trending"))
+            using (var resp = await client.GetAsync($"https://graph.microsoft.com/beta/me?$expand=extensions($filter=id eq 'MSMPrevDaySentiment')"))
             {
             }
         }
