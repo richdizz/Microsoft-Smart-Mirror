@@ -25,6 +25,40 @@
             <!--Converters-->
             <converters:ValueToVisibilityConverter x:Key="visConverter" />
 
+            
+            <!-- Control-specific styles -->
+            <Style x:Key="PartTitle" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="Segoe UI"/>
+                <Setter Property="FontSize" Value="36"/>
+                <Setter Property="VerticalAlignment" Value="Bottom" />
+                <Setter Property="HorizontalAlignment" Value="Left" />
+                <Setter Property="Padding" Value="5" />
+            </Style>
+
+            <Style x:Key="SectionHeader" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="Segoe UI"/>
+                <Setter Property="FontSize" Value="32"/>
+                <Setter Property="TextWrapping" Value="WrapWholeWords" />
+            </Style>
+
+            <Style x:Key="SubSectionHeader" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="Segoe UI"/>
+                <Setter Property="FontSize" Value="24"/>
+                <Setter Property="TextWrapping" Value="WrapWholeWords" />
+            </Style>
+
+            <Style x:Key="Text" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="Segoe UI"/>
+                <Setter Property="FontSize" Value="18"/>
+                <Setter Property="TextWrapping" Value="WrapWholeWords" />
+            </Style>
+
+            <Style x:Key="SmallText" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="Segoe UI"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="TextWrapping" Value="WrapWholeWords" />
+            </Style>
+
         </ResourceDictionary>
     </Application.Resources>
 </Application>

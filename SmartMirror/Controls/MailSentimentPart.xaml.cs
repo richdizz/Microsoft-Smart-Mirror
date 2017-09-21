@@ -28,6 +28,7 @@ namespace SmartMirror.Controls
         public MailSentimentPart()
         {
             this.InitializeComponent();
+            wrapper.Title = "Sample Title";
         }
 
         public async override void Initialize(User user, bool isEditMode = false)

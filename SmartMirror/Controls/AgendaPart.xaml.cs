@@ -29,34 +29,6 @@ namespace SmartMirror.Controls
             this.InitializeComponent();
         }
 
-        private void addDateHeader(string date)
-        {
-            Grid grid = new Grid();
-            grid.Margin = new Thickness(0, 10, 0, 10);
-            grid.ColumnDefinitions.Add(new ColumnDefinition() { MaxWidth = 60, MinWidth = 60 });
-            grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
-
-            Ellipse ellipse = new Ellipse();
-            ellipse.HorizontalAlignment = HorizontalAlignment.Left;
-            ellipse.VerticalAlignment = VerticalAlignment.Top;
-            ellipse.Width = 25;
-            ellipse.Height = 25;
-            ellipse.Margin = new Thickness(29, 15, 0, 0);
-            ellipse.Fill = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 255, 255));
-            grid.Children.Add(ellipse);
-            Grid.SetColumn(ellipse, 0);
-
-            TextBlock tbDate = new TextBlock();
-            tbDate.Width = this.ActualWidth - 60;
-            tbDate.Text = date;
-            tbDate.FontSize = 32;
-            tbDate.TextWrapping = TextWrapping.WrapWholeWords;
-            grid.Children.Add(tbDate);
-            Grid.SetColumn(tbDate, 1);
-            
-            agendaPanel.Children.Add(grid);
-        }
-
         public async override void Initialize(User user, bool isEditMode = false)
         {
             base.Initialize(user, isEditMode);
@@ -85,7 +57,7 @@ namespace SmartMirror.Controls
                             var thisDate = ParseDateWithUsCulture(evt.SelectToken("start.dateTime").Value<string>()).ToString("D");
                             if (thisDate != dateIndex)
                             {
-                                // remove this condition to show more than one calendar item
+                                // remove this condition to show more than one calendar date
                                 if (dateIndex == "")
                                 {
                                     dateIndex = thisDate;
@@ -125,7 +97,7 @@ namespace SmartMirror.Controls
                             tbTime.Padding = new Thickness(20, 0, 0, 0);
                             tbTime.Width = this.ActualWidth - 60;
                             tbTime.Text = $"{start.ToString("h:mm tt")} - {end.ToString("h:mm tt")}";
-                            tbTime.FontSize = 24;
+                            tbTime.Style = (Style)App.Current.Resources["SubSectionHeader"];
                             tbTime.TextWrapping = TextWrapping.WrapWholeWords;
                             sp.Children.Add(tbTime);
 
@@ -133,7 +105,7 @@ namespace SmartMirror.Controls
                             tbSubject.Padding = new Thickness(20, 0, 0, 0);
                             tbSubject.Width = this.ActualWidth - 60;
                             tbSubject.Text = subject;
-                            tbSubject.FontSize = 18;
+                            tbSubject.Style = (Style)App.Current.Resources["Text"];
                             tbSubject.TextWrapping = TextWrapping.WrapWholeWords;
                             sp.Children.Add(tbSubject);
 
@@ -142,6 +114,34 @@ namespace SmartMirror.Controls
                     }
                 }
             }
+        }
+
+        private void addDateHeader(string date)
+        {
+            Grid grid = new Grid();
+            grid.Margin = new Thickness(0, 10, 0, 10);
+            grid.ColumnDefinitions.Add(new ColumnDefinition() { MaxWidth = 60, MinWidth = 60 });
+            grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+
+            Ellipse ellipse = new Ellipse();
+            ellipse.HorizontalAlignment = HorizontalAlignment.Left;
+            ellipse.VerticalAlignment = VerticalAlignment.Top;
+            ellipse.Width = 25;
+            ellipse.Height = 25;
+            ellipse.Margin = new Thickness(29, 15, 0, 0);
+            ellipse.Fill = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 255, 255));
+            grid.Children.Add(ellipse);
+            Grid.SetColumn(ellipse, 0);
+
+            TextBlock tbDate = new TextBlock();
+            tbDate.Width = this.ActualWidth - 60;
+            tbDate.Text = date;
+            tbDate.Style = (Style)App.Current.Resources["SectionHeader"];
+            tbDate.TextWrapping = TextWrapping.WrapWholeWords;
+            grid.Children.Add(tbDate);
+            Grid.SetColumn(tbDate, 1);
+
+            agendaPanel.Children.Add(grid);
         }
 
         private static DateTime ParseDateWithUsCulture(string date)
