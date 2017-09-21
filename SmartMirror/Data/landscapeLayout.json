@@ -3,11 +3,11 @@
   "SmartMirror.Controls.EmptyPart",
   "SmartMirror.Controls.EmptyPart",
   "SmartMirror.Controls.EmptyPart",
-  "SmartMirror.Controls.ClockPart",
-  "SmartMirror.Controls.AgendaPart",
-  "SmartMirror.Controls.InboxPart",
   "SmartMirror.Controls.NewsPart",
+  "SmartMirror.Controls.AgendaPart",
+  "SmartMirror.Controls.ClockPart",
   "SmartMirror.Controls.EmptyPart",
+  "SmartMirror.Controls.InboxPart",
   "SmartMirror.Controls.EmptyPart",
   "SmartMirror.Controls.EmptyPart"
 ]
