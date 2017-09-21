@@ -134,7 +134,10 @@ namespace SmartMirror.Controls
             Grid.SetColumn(ellipse, 0);
 
             TextBlock tbDate = new TextBlock();
-            tbDate.Width = this.ActualWidth - 60;
+            if (this.ActualWidth > 60)
+            {
+                tbDate.Width = this.ActualWidth - 60;
+            }
             tbDate.Text = date;
             tbDate.Style = (Style)App.Current.Resources["SectionHeader"];
             tbDate.TextWrapping = TextWrapping.WrapWholeWords;
