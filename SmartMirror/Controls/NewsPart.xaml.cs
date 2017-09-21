@@ -22,6 +22,28 @@ namespace SmartMirror.Controls
         public NewsPart()
         {
             this.InitializeComponent();
+            this.Loaded += NewsPart_Loaded;
+            this.SizeChanged += NewsPart_SizeChanged;
+        }
+
+        private void NewsPart_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            var width = e.NewSize.Width;
+            var height = (width / 640) * 360;
+            theWebView.Width = width;
+            theWebView.Height = height;
+            var streamSource = $"https://livestream.com/accounts/6372917/events/2592483/player?width={width}&height={height}&enableInfoAndActivity=true&defaultDrawer=&autoPlay=true&mute=false";
+            theWebView.Source = new Uri(streamSource);
+        }
+
+        private void NewsPart_Loaded(object sender, RoutedEventArgs e)
+        {
+            var width = this.ActualWidth;
+            var height = (width / 640) * 360;
+            theWebView.Width = width;
+            theWebView.Height = height;
+            var streamSource = $"https://livestream.com/accounts/6372917/events/2592483/player?width={width}&height={height}&enableInfoAndActivity=true&defaultDrawer=&autoPlay=true&mute=false";
+            theWebView.Source = new Uri(streamSource);
         }
     }
 }
