@@ -9,5 +9,5 @@
   "SmartMirror.Controls.EmptyPart",
   "SmartMirror.Controls.InboxPart",
   "SmartMirror.Controls.MailSentimentPart",
-  "SmartMirror.Controls.EmptyPart"
+  "SmartMirror.Controls.WeatherPart"
 ]
