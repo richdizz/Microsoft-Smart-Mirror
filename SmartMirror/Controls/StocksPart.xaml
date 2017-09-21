@@ -10,6 +10,7 @@
     d:DesignWidth="400">
 
     <Grid>
-
+        <StackPanel Orientation="Horizontal" Name="stockPanel">
+        </StackPanel>
     </Grid>
 </local:MirrorPartBase>
