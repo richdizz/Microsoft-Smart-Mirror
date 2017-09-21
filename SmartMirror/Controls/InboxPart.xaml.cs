@@ -71,21 +71,25 @@ namespace SmartMirror.Controls
                             Grid.SetColumn(sp, 1);
 
 
-                            TextBlock tbFrom = new TextBlock();
-                            tbFrom.Width = this.ActualWidth - 40;
+
+                            TextBlock tbFrom = new TextBlock();                           
                             tbFrom.Text = from;
                             tbFrom.FontSize = 24;
                             tbFrom.TextWrapping = TextWrapping.Wrap;
                             tbFrom.VerticalAlignment = VerticalAlignment.Top;
                             sp.Children.Add(tbFrom);
 
-                            TextBlock tbSubject = new TextBlock();
-                            tbSubject.Width = this.ActualWidth - 40;
+                            TextBlock tbSubject = new TextBlock();                          
                             tbSubject.Text = subject;
                             tbSubject.FontSize = 18;
                             tbSubject.TextWrapping = TextWrapping.Wrap;
                             sp.Children.Add(tbSubject);
 
+                            if (this.ActualWidth > 39)
+                            {
+                                tbFrom.Width = this.ActualWidth - 40;
+                                tbSubject.Width = this.ActualWidth - 40;
+                            }
                             //TextBlock tbbody = new TextBlock();
                             //tbbody.Width = this.ActualWidth - 60;
                             //tbbody.Text = bodyPreview;
