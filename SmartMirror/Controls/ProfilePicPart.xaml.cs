@@ -17,6 +17,7 @@ using System.Net.Http;
 using System.Text;
 using Windows.UI.Xaml.Media.Imaging;
 using Windows.Storage.Streams;
+using Windows.UI.Xaml.Shapes;
 
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -27,13 +28,6 @@ namespace SmartMirror.Controls
         public ProfilePicPart()
         {
             this.InitializeComponent();
-            this.SizeChanged += ProfilePicPart_SizeChanged;
-        }
-
-        private void ProfilePicPart_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            imgEllipse.Width = 200;
-            imgEllipse.Height = imgEllipse.Width;
         }
 
         public async override void Initialize(User user, bool isEditMode = false)
@@ -58,6 +52,7 @@ namespace SmartMirror.Controls
                         ImageBrush fill = new ImageBrush();
                         fill.ImageSource = bitmap;
                         imgEllipse.Fill = fill;
+                        imgEllipse.Visibility = Visibility.Visible;
                     }
                 }
             }

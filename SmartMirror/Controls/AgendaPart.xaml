@@ -7,13 +7,17 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid>
-        <Line StrokeThickness="3" HorizontalAlignment="Left" Margin="40 0 0 0"
-              VerticalAlignment="Stretch" Y2="1" Stretch="Fill" 
-              StrokeEndLineCap="Square" StrokeStartLineCap="Square" Stroke="White" 
-              Visibility="Collapsed" Name="timeline" />
-        <StackPanel Orientation="Vertical" Name="agendaPanel">
-            
-        </StackPanel>
-    </Grid>
+    <local:MirrorPartContainer x:Name="wrapper">
+        <local:MirrorPartContainer.PlaceHolder>
+            <Grid>
+                <Line StrokeThickness="3" HorizontalAlignment="Left" Margin="40 0 0 0"
+                  VerticalAlignment="Stretch" Y2="1" Stretch="Fill" 
+                  StrokeEndLineCap="Square" StrokeStartLineCap="Square" Stroke="White" 
+                  Visibility="Collapsed" Name="timeline" />
+                <StackPanel Orientation="Vertical" Name="agendaPanel">
+
+                </StackPanel>   
+            </Grid>
+        </local:MirrorPartContainer.PlaceHolder>
+    </local:MirrorPartContainer>
 </local:MirrorPartBase>
