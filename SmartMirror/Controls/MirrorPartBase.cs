@@ -39,45 +39,46 @@ namespace SmartMirror.Controls
 
         private void MirrorPartBase_SizeChanged(object sender, Windows.UI.Xaml.SizeChangedEventArgs e)
         {
+
             // Get the grid
-            Grid root = (Grid)this.Content;
-            rec = new Rectangle()
-            {
-                Stroke = new SolidColorBrush(Color.FromArgb(255, 255, 255, 255)),
-                StrokeThickness = 3,
-                StrokeDashArray = new DoubleCollection() { 4, 4 },
-                RadiusX = 20,
-                RadiusY = 20,
-                HorizontalAlignment = Windows.UI.Xaml.HorizontalAlignment.Stretch,
-                VerticalAlignment = Windows.UI.Xaml.VerticalAlignment.Stretch,
-                Margin = new Windows.UI.Xaml.Thickness(20, 20, 20, 20),
-                RenderTransformOrigin = new Windows.Foundation.Point(0.5, 0.5)
-            };
-            rec.RenderTransform = new RotateTransform();
+            //Grid root = (Grid)this.Content;
+            //rec = new Rectangle()
+            //{
+            //    Stroke = new SolidColorBrush(Color.FromArgb(255, 255, 255, 255)),
+            //    StrokeThickness = 3,
+            //    StrokeDashArray = new DoubleCollection() { 4, 4 },
+            //    RadiusX = 20,
+            //    RadiusY = 20,
+            //    HorizontalAlignment = Windows.UI.Xaml.HorizontalAlignment.Stretch,
+            //    VerticalAlignment = Windows.UI.Xaml.VerticalAlignment.Stretch,
+            //    Margin = new Windows.UI.Xaml.Thickness(20, 20, 20, 20),
+            //    RenderTransformOrigin = new Windows.Foundation.Point(0.5, 0.5)
+            //};
+            //rec.RenderTransform = new RotateTransform();
 
-            Storyboard storyboard = new Storyboard();
-            DoubleAnimationUsingKeyFrames animation = new DoubleAnimationUsingKeyFrames();
-            animation.RepeatBehavior = RepeatBehavior.Forever;
-            storyboard.Children.Add(animation);
-            Random rand = new Random();
-            animation.KeyFrames.Add(new LinearDoubleKeyFrame() { Value = 2, KeyTime = KeyTime.FromTimeSpan(TimeSpan.FromSeconds(.05)) });
-            animation.KeyFrames.Add(new LinearDoubleKeyFrame() { Value = -3, KeyTime = KeyTime.FromTimeSpan(TimeSpan.FromSeconds(.1)) });
-            animation.KeyFrames.Add(new LinearDoubleKeyFrame() { Value = 4, KeyTime = KeyTime.FromTimeSpan(TimeSpan.FromSeconds(.15)) });
-            animation.KeyFrames.Add(new LinearDoubleKeyFrame() { Value = -1, KeyTime = KeyTime.FromTimeSpan(TimeSpan.FromSeconds(.2)) });
-            Storyboard.SetTarget(storyboard, rec);
-            Storyboard.SetTargetProperty(storyboard, "(UIElement.RenderTransform).(RotateTransform.Angle)");
+            //Storyboard storyboard = new Storyboard();
+            //DoubleAnimationUsingKeyFrames animation = new DoubleAnimationUsingKeyFrames();
+            //animation.RepeatBehavior = RepeatBehavior.Forever;
+            //storyboard.Children.Add(animation);
+            //Random rand = new Random();
+            //animation.KeyFrames.Add(new LinearDoubleKeyFrame() { Value = 2, KeyTime = KeyTime.FromTimeSpan(TimeSpan.FromSeconds(.05)) });
+            //animation.KeyFrames.Add(new LinearDoubleKeyFrame() { Value = -3, KeyTime = KeyTime.FromTimeSpan(TimeSpan.FromSeconds(.1)) });
+            //animation.KeyFrames.Add(new LinearDoubleKeyFrame() { Value = 4, KeyTime = KeyTime.FromTimeSpan(TimeSpan.FromSeconds(.15)) });
+            //animation.KeyFrames.Add(new LinearDoubleKeyFrame() { Value = -1, KeyTime = KeyTime.FromTimeSpan(TimeSpan.FromSeconds(.2)) });
+            //Storyboard.SetTarget(storyboard, rec);
+            //Storyboard.SetTargetProperty(storyboard, "(UIElement.RenderTransform).(RotateTransform.Angle)");
 
-            label = new TextBlock();
-            label.Text = Index.ToString();
-            label.VerticalAlignment = Windows.UI.Xaml.VerticalAlignment.Center;
-            label.HorizontalAlignment = Windows.UI.Xaml.HorizontalAlignment.Center;
-            label.FontSize = 90;
-            root.Children.Add(label);
+            //label = new TextBlock();
+            //label.Text = Index.ToString();
+            //label.VerticalAlignment = Windows.UI.Xaml.VerticalAlignment.Center;
+            //label.HorizontalAlignment = Windows.UI.Xaml.HorizontalAlignment.Center;
+            //label.FontSize = 90;
+            //root.Children.Add(label);
 
-            root.Children.Add(rec);
-            rec.Visibility = (isEditMode) ? Windows.UI.Xaml.Visibility.Visible : Windows.UI.Xaml.Visibility.Collapsed;
-            label.Visibility = (isEditMode) ? Windows.UI.Xaml.Visibility.Visible : Windows.UI.Xaml.Visibility.Collapsed;
-            storyboard.Begin();
+            //root.Children.Add(rec);
+            //rec.Visibility = (isEditMode) ? Windows.UI.Xaml.Visibility.Visible : Windows.UI.Xaml.Visibility.Collapsed;
+            //label.Visibility = (isEditMode) ? Windows.UI.Xaml.Visibility.Visible : Windows.UI.Xaml.Visibility.Collapsed;
+            //storyboard.Begin();
         }
     }
 }

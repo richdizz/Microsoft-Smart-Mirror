@@ -114,6 +114,9 @@
     <Compile Include="Controls\EmptyPart.xaml.cs">
       <DependentUpon>EmptyPart.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\MirrorPartContainer.xaml.cs">
+      <DependentUpon>MirrorPartContainer.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\NewsPart.xaml.cs">
       <DependentUpon>NewsPart.xaml</DependentUpon>
     </Compile>
@@ -257,6 +260,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\MailSentimentPart.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\MirrorPartContainer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

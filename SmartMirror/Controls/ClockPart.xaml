@@ -7,9 +7,11 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid>
-        <Viewbox Margin="4" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Height="Auto">
-            <TextBlock Name="theTime" Foreground="White"></TextBlock>
-        </Viewbox>
-    </Grid>
+    <local:MirrorPartContainer x:Name="wrapper">
+        <local:MirrorPartContainer.PlaceHolder>
+            <Viewbox Margin="4" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Height="Auto">
+                <TextBlock Name="theTime" Foreground="White"></TextBlock>
+            </Viewbox>
+        </local:MirrorPartContainer.PlaceHolder>
+    </local:MirrorPartContainer>
 </local:MirrorPartBase>
