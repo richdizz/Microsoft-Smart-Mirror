@@ -151,6 +151,7 @@ namespace SmartMirror.Controls
 
 
         public int Count { get; set; }
+        public double Width { get; set; }
     }
 
     public class WorkAnalyticsPartViewModel : DependencyObject
@@ -202,9 +203,14 @@ namespace SmartMirror.Controls
                             .Select(g => new EmailStat{ Name = g.Key, Count = g.Count() }) 
                             .OrderByDescending( s => s.Count).ToList();
 
+                        var max = stats.Max(m => m.Count);
+
+                        var w = this.ActualWidth;
+                        
                         stats.Take(4).ToList().ForEach(es =>
                         {
                             //LoadImage(es);
+                            es.Width = w / max * es.Count;
                             ViewModel.TopEmail.Add(es);
                         });
 
