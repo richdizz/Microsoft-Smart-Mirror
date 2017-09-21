@@ -9,7 +9,24 @@
     d:DesignHeight="300"
     d:DesignWidth="400">
 
-    <Grid>
-
+    <Grid >
+        <ListBox ItemsSource="{Binding TopEmail}" Background="Black">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid HorizontalAlignment="Stretch">
+                        <!--<Grid Background="#444955" HorizontalAlignment="Left" Width="{Binding Width}"  Margin="0,-2,0,-2"/>-->
+                        <TextBlock Margin="5,0,0,0" Text="{Binding Name}" FontSize="16" HorizontalAlignment="Left"/>
+                        <TextBlock Text="{Binding Count}" HorizontalAlignment="Right"/>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Margin" Value="0 0 0 0"/>
+                    <Setter Property="Padding" Value="0 0 0 10"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                </Style>
+            </ListBox.ItemContainerStyle>
+        </ListBox>
     </Grid>
 </local:MirrorPartBase>

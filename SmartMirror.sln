@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.16
+VisualStudioVersion = 15.0.26730.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartMirror", "SmartMirror\SmartMirror.csproj", "{15DFA425-16B7-4F29-BB9B-C694B2114DBE}"
 EndProject
@@ -19,7 +19,9 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{15DFA425-16B7-4F29-BB9B-C694B2114DBE}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{15DFA425-16B7-4F29-BB9B-C694B2114DBE}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{15DFA425-16B7-4F29-BB9B-C694B2114DBE}.Debug|Any CPU.Build.0 = Debug|x64
+		{15DFA425-16B7-4F29-BB9B-C694B2114DBE}.Debug|Any CPU.Deploy.0 = Debug|x64
 		{15DFA425-16B7-4F29-BB9B-C694B2114DBE}.Debug|ARM.ActiveCfg = Debug|ARM
 		{15DFA425-16B7-4F29-BB9B-C694B2114DBE}.Debug|ARM.Build.0 = Debug|ARM
 		{15DFA425-16B7-4F29-BB9B-C694B2114DBE}.Debug|ARM.Deploy.0 = Debug|ARM
@@ -58,5 +60,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7AC0E048-7956-484C-9F96-66A89DB009C5}
 	EndGlobalSection
 EndGlobal
