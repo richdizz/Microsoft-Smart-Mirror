@@ -38,7 +38,6 @@ namespace SmartMirror.Controls
 
             if (messages.Count > 0)
             {
-                messageBox.Visibility = Visibility.Visible;
 
                 // loop through messages
                 foreach (var msg in messages)
@@ -49,26 +48,34 @@ namespace SmartMirror.Controls
                  
                     Grid grid = new Grid();
                     grid.Margin = new Thickness(0, 10, 0, 10);
-                    grid.ColumnDefinitions.Add(new ColumnDefinition() { MaxWidth = 40, MinWidth = 40 });
-                    grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+                    grid.ColumnDefinitions.Add(new ColumnDefinition() { MaxWidth = 40, MinWidth = 40});
+                    grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto});
+
+                    SymbolIcon icon = new SymbolIcon(Symbol.Mail);
+                    icon.Foreground = new SolidColorBrush(Windows.UI.Colors.White);
+                    icon.VerticalAlignment = VerticalAlignment.Top;
+                    grid.Children.Add(icon);
+                    Grid.SetColumn(icon, 0);
 
                     StackPanel sp = new StackPanel();
                     sp.Orientation = Orientation.Vertical;
                     grid.Children.Add(sp);
                     Grid.SetColumn(sp, 1);
 
+                    
                     TextBlock tbFrom = new TextBlock();
                     tbFrom.Width = this.ActualWidth - 40;
                     tbFrom.Text = from;
                     tbFrom.FontSize = 18;
-                    tbFrom.TextWrapping = TextWrapping.WrapWholeWords;
+                    tbFrom.TextWrapping = TextWrapping.Wrap;
+                    tbFrom.VerticalAlignment = VerticalAlignment.Top;
                     sp.Children.Add(tbFrom);
 
                     TextBlock tbSubject = new TextBlock();
                     tbSubject.Width = this.ActualWidth - 40;
                     tbSubject.Text = subject;
-                    tbSubject.FontSize = 14;
-                    tbSubject.TextWrapping = TextWrapping.WrapWholeWords;
+                    tbSubject.FontSize = 12;
+                    tbSubject.TextWrapping = TextWrapping.Wrap;
                     sp.Children.Add(tbSubject);
 
                     //TextBlock tbbody = new TextBlock();
@@ -79,15 +86,15 @@ namespace SmartMirror.Controls
                     //sp.Children.Add(tbbody);
 
                     Line line = new Line();
-                    line.Y1 = 15;
-                    line.Y2 = 15;
-                    line.X2 = this.ActualWidth - 40;
+                    line.Y1 = 10;
+                    line.Y2 = 10;
+                    line.X2 = this.ActualWidth;
                     line.StrokeThickness = 1;
                     line.Stroke = new SolidColorBrush(Windows.UI.Colors.White);
                     line.StrokeDashArray = new DoubleCollection(){1};
-                    sp.Children.Add(line);
 
                     inboxPanel.Children.Add(grid);
+                    //inboxPanel.Children.Add(line);
                 }
 
             }
