@@ -4,7 +4,11 @@
   "SmartMirror.Controls.EmptyPart",
   "SmartMirror.Controls.ClockPart",
   "SmartMirror.Controls.AgendaPart",
+<<<<<<< HEAD
   "SmartMirror.Controls.InboxPart",
+=======
+  "SmartMirror.Controls.MailSentimentPart",
+>>>>>>> e90d999350d5a0a51776627c4ac81fad8205265f
   "SmartMirror.Controls.EmptyPart",
   "SmartMirror.Controls.EmptyPart",
   "SmartMirror.Controls.EmptyPart",
