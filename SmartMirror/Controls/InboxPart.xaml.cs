@@ -43,7 +43,6 @@ namespace SmartMirror.Controls
                     {
                         JArray messages = JObject.Parse(jsonMessage).Value<JArray>("value");
 
-<<<<<<< HEAD
                         if (messages.Count > 0)
                         {
                             inboxPanel.Children.Clear();
@@ -107,53 +106,8 @@ namespace SmartMirror.Controls
                                 inboxPanel.Children.Add(grid);
                                 //inboxPanel.Children.Add(line);
                             }
-=======
-                            StackPanel sp = new StackPanel();
-                            sp.Orientation = Orientation.Vertical;
-                            grid.Children.Add(sp);
-                            Grid.SetColumn(sp, 1);
-
-
-
-                            TextBlock tbFrom = new TextBlock();                           
-                            tbFrom.Text = from;
-                            tbFrom.FontSize = 24;
-                            tbFrom.TextWrapping = TextWrapping.Wrap;
-                            tbFrom.VerticalAlignment = VerticalAlignment.Top;
-                            sp.Children.Add(tbFrom);
-
-                            TextBlock tbSubject = new TextBlock();                          
-                            tbSubject.Text = subject;
-                            tbSubject.FontSize = 18;
-                            tbSubject.TextWrapping = TextWrapping.Wrap;
-                            sp.Children.Add(tbSubject);
-
-                            if (this.ActualWidth > 40)
-                            {
-                                tbFrom.Width = this.ActualWidth - 40;
-                                tbSubject.Width = this.ActualWidth - 40;
-                            }
-                            //TextBlock tbbody = new TextBlock();
-                            //tbbody.Width = this.ActualWidth - 60;
-                            //tbbody.Text = bodyPreview;
-                            //tbbody.FontSize = 12;
-                            //tbbody.TextWrapping = TextWrapping.WrapWholeWords;
-                            //sp.Children.Add(tbbody);
-
-                            Line line = new Line();
-                            line.Y1 = 10;
-                            line.Y2 = 10;
-                            line.X2 = this.ActualWidth;
-                            line.StrokeThickness = 1;
-                            line.Stroke = new SolidColorBrush(Windows.UI.Colors.White);
-                            line.StrokeDashArray = new DoubleCollection() { 1 };
-
-                            inboxPanel.Children.Add(grid);
-                            //inboxPanel.Children.Add(line);
->>>>>>> e9cfe9f9b6e48b998f48d19a90806af75f82c2d7
                         }
                     }
-
                     await Task.Delay(5000);
                 }
 
