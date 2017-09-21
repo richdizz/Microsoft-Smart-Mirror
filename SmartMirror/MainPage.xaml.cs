@@ -301,7 +301,7 @@ namespace SmartMirror
                             tbMessage.Text = codeResult.Message;
 #if DEBUG
                             // Convenience for debugging
-                            await Windows.System.Launcher.LaunchUriAsync(new Uri("https://aka.ms/devicelogin"));
+                            //await Windows.System.Launcher.LaunchUriAsync(new Uri("https://aka.ms/devicelogin"));
 #endif
                             var result = await AuthHelper.AcquireTokenByDeviceCodeAsync(codeResult);
                             if (result == null)
