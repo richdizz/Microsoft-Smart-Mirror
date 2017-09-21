@@ -4,7 +4,6 @@ using Microsoft.ProjectOxford.Face;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SmartMirror.Controls;
-using SmartMirror.Data;
 using SmartMirror.Models;
 using SmartMirror.Utils;
 using System;
@@ -70,6 +69,8 @@ namespace SmartMirror
         private bool inEditMode = false;
         private FaceDetector faceDetector;
         private MediaCapture capture;
+        private List<string> portraitLayout;
+        private List<string> landscapeLayout;
 
         // TODO: should these be in a json file instead???
         private Dictionary<char, WidgetOption> availableWidgets = new Dictionary<char, WidgetOption>()
@@ -78,10 +79,10 @@ namespace SmartMirror
             { 'B', new WidgetOption("Profile picture", "SmartMirror.Controls.ProfilePicPart") },
             { 'C', new WidgetOption("Daily agenda", "SmartMirror.Controls.AgendaPart") },
             { 'D', new WidgetOption("Weather", "SmartMirror.Controls.ProfilePicPart") },
-            { 'E', new WidgetOption("Inbox", "SmartMirror.Controls.ProfilePicPart") },
-            { 'F', new WidgetOption("Trending info", "SmartMirror.Controls.ProfilePicPart") },
-            { 'G', new WidgetOption("Stocks", "SmartMirror.Controls.ProfilePicPart") },
-            { 'H', new WidgetOption("News", "SmartMirror.Controls.ProfilePicPart") },
+            { 'E', new WidgetOption("Inbox", "SmartMirror.Controls.InboxPart") },
+            { 'F', new WidgetOption("Trending info", "SmartMirror.Controls.TrendingPart") },
+            { 'G', new WidgetOption("Stocks", "SmartMirror.Controls.StocksPart") },
+            { 'H', new WidgetOption("News", "SmartMirror.Controls.NewsPart") },
             { 'I', new WidgetOption("Clock", "SmartMirror.Controls.ClockPart") },
             { 'J', new WidgetOption("Work Analytics", "SmartMirror.Controls.WorkAnalyticsPart") }
         };
@@ -98,12 +99,11 @@ namespace SmartMirror
             { "nine", 9 },
             { "ten", 10 },
             { "eleven", 11 },
-            { "twleve", 12 },
+            { "twelve", 12 },
             { "thirteen", 13 },
             { "fourteen", 14 },
             { "fifteen", 15 }
         };
-
 
         public MainPage()
         {
@@ -112,16 +112,26 @@ namespace SmartMirror
             this.mediaElement.MediaEnded += MediaElement_MediaEnded;
 
             // Setup default view of fullscreen
-            //TODO: undo the comment-out
             ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.FullScreen;
             ApplicationView.GetForCurrentView().TryEnterFullScreenMode();
         }
 
+        /// <summary>
+        /// Executes when the page is loaded
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void MainPage_Loaded(object sender, RoutedEventArgs e)
         {
+            // Load layouts
+            portraitLayout = portraitLayout.FromJsonFile("data\\portraitLayout.json");
+            landscapeLayout = landscapeLayout.FromJsonFile("data\\landscapeLayout.json");
+
             // wait for a user in front of the mirror
             tbMessage.Text = "Stand in front of the Microsoft Smart Mirror to sign-in";
-            await startListening();
+            
+            // HACK: listening disabled as we are going with static layouts for now
+            //await startListening();
 
             // Initialize MediaCapture and FaceDetector
             if (this.capture == null)
@@ -141,12 +151,13 @@ namespace SmartMirror
                 });
             }
 
+            // initialize face detector
             if (this.faceDetector == null)
             {
                 this.faceDetector = await FaceDetector.CreateAsync();
             }
 
-            // the following is a hack for skipping facial recognition for developers
+            // HACK: the following is a hack for skipping facial recognition for developers
             var users = await StorageHelper.GetUsersAsync();
             if (forceFirstUser && users.Count > 0)
             {
@@ -156,6 +167,7 @@ namespace SmartMirror
                 else
                 {
                     activeUser = users[0];
+                    activeUser.AuthResults = result;
                     Random rand = new Random();
                     var statement = String.Format(loader.GetString("WelcomeBack" + rand.Next(6)), activeUser.GivenName);
                     await speak(statement);
@@ -289,7 +301,7 @@ namespace SmartMirror
                             tbMessage.Text = codeResult.Message;
 #if DEBUG
                             // Convenience for debugging
-                            //                        await Windows.System.Launcher.LaunchUriAsync(new Uri("https://aka.ms/devicelogin"));
+                            await Windows.System.Launcher.LaunchUriAsync(new Uri("https://aka.ms/devicelogin"));
 #endif
                             var result = await AuthHelper.AcquireTokenByDeviceCodeAsync(codeResult);
                             if (result == null)
@@ -801,18 +813,49 @@ namespace SmartMirror
             // Reset the grid
             for (var i = mainView.Children.Count - 1; i >= 0; i--)
             {
-                if (mainView.Children[i] is Controls.MirrorPartBase)
+                if (mainView.Children[i] is StackPanel)
                     mainView.Children.RemoveAt(i);
             }
             mainView.ColumnDefinitions.Clear();
             mainView.RowDefinitions.Clear();
-            int columns = 5, rows = 6; // Default to portrait mode
-            if (size.Height < size.Width)
+            int columns = (size.Height < size.Width)? 5 : 4;
+            int rows = (size.Height < size.Width) ? 4 : 5;
+            string layoutFile = (size.Height < size.Width) ? "Data\\portraitLayout.json" : "Data\\portraitLayout.json";
+            List<string> staticLayout = (size.Height < size.Width) ? landscapeLayout : portraitLayout;
+
+            if (activeUser != null)
             {
-                // Reverse because we are in landscape mode
-                columns = 6;
-                rows = 5;
+                for (var i = 0; i < columns; i++)
+                {
+                    mainView.ColumnDefinitions.Add(new ColumnDefinition() { MinWidth = size.Width / columns });
+
+                    // add a stack panel to the column
+                    StackPanel panel = new StackPanel();
+                    panel.SetValue(Grid.ColumnProperty, i);
+                    panel.SetValue(Grid.RowProperty, 0);
+                    mainView.Children.Add(panel);
+                    if (i == 0)
+                    {
+                        panel.Children.Add(getMirrorPart(0));
+                        for (var j = 0; j <= rows; j += 2)
+                            panel.Children.Add(getMirrorPart(j + columns, staticLayout));
+                    }
+                    else if (i == columns - 1)
+                    {
+                        panel.Children.Add(getMirrorPart(columns - 1, staticLayout));
+                        for (var j = 0; j <= rows; j += 2)
+                            panel.Children.Add(getMirrorPart(j + columns + 1, staticLayout));
+                    }
+                    else
+                    {
+                        panel.Children.Add(getMirrorPart(i, staticLayout));
+                    }
+                }
             }
+            /*
+
+
+
 
             // Add row definitions
             var index = 1;
@@ -828,17 +871,12 @@ namespace SmartMirror
                     {
                         if (activeUser != null)
                         {
-                            // Add the part based on the user's profile
-                            MirrorPartBase ctrl = (MirrorPartBase)Activator.CreateInstance(Type.GetType(activeUser.Preferences[index]));
-                            ctrl.Index = index++;
-                            ctrl.SetValue(Grid.ColumnProperty, column);
-                            ctrl.SetValue(Grid.RowProperty, row);
-                            mainView.Children.Add(ctrl);
-                            ctrl.Initialize(this.activeUser, inEditMode);
+                            
                         }
                     }
                 }
             }
+            
 
             // update the tbMessage position
             tbMessage.SetValue(Grid.ColumnProperty, 1);
@@ -854,6 +892,17 @@ namespace SmartMirror
             tbOptions.Text = "";
             foreach (var key in availableWidgets.Keys)
                 tbOptions.Text += $"{key}. {availableWidgets[key].DisplayName}\r\n";
+            */
+        }
+
+        private MirrorPartBase getMirrorPart(int index, List<string> staticLayout = null)
+        {
+            // Add the part based on the user's profile or staticLayout
+            string partNamespace = (staticLayout == null) ? activeUser.Preferences[index + 1] : staticLayout[index];
+            MirrorPartBase ctrl = (MirrorPartBase)Activator.CreateInstance(Type.GetType(partNamespace));
+            ctrl.Index = index;
+            ctrl.Initialize(this.activeUser, inEditMode);
+            return ctrl;
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -16,6 +17,15 @@ namespace SmartMirror
             for (int totalBytesCopied = 0; totalBytesCopied < stream.Length;)
                 totalBytesCopied += stream.Read(buffer, totalBytesCopied, Convert.ToInt32(stream.Length) - totalBytesCopied);
             return buffer;
+        }
+
+        public static List<string> FromJsonFile(this List<string> list, string filepath)
+        {
+            using (StreamReader file = File.OpenText(filepath))
+            {
+                JsonSerializer serializer = new JsonSerializer();
+                return (List<string>)serializer.Deserialize(file, typeof(List<string>));
+            }
         }
     }
 }

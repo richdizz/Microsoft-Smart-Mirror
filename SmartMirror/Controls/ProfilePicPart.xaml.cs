@@ -32,7 +32,7 @@ namespace SmartMirror.Controls
 
         private void ProfilePicPart_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            imgEllipse.Width = ((e.NewSize.Height > e.NewSize.Width) ? e.NewSize.Width : e.NewSize.Height) - 40;
+            imgEllipse.Width = 200;
             imgEllipse.Height = imgEllipse.Width;
         }
 
