@@ -85,7 +85,7 @@ namespace SmartMirror.Controls
                             tbSubject.TextWrapping = TextWrapping.Wrap;
                             sp.Children.Add(tbSubject);
 
-                            if (this.ActualWidth > 39)
+                            if (this.ActualWidth > 40)
                             {
                                 tbFrom.Width = this.ActualWidth - 40;
                                 tbSubject.Width = this.ActualWidth - 40;
