@@ -76,12 +76,17 @@ namespace SmartMirror.Controls
                             var prev = await getItemsRecursive(user.AuthResults.access_token, yesterdayEndpoint);
                             var yesterdayEndPoint = $"https://graph.microsoft.com/v1.0/me/mailfolders/{sentFolderId}/messages?$select=subject,sentDateTime,body&$orderBy=sentDateTime%20desc&$filter=sentDateTime ge {d3} and sentDateTime le {d4}";
                             var yesterday = await getItemsRecursive(user.AuthResults.access_token, yesterdayEndPoint);
+                            // Sometimes there is no sentiment - need to check first
+                            // Neil Hutson
+                            if (prev != null)
+                            {
+                                var prevSentiment = await getAvgSentiment(prev);
+                                var yesterdaySentiment = await getAvgSentiment(yesterday);
+                                tbPrev.Text = $"2 days ago: {prevSentiment * 100}";
+                                tbYesterday.Text = $"Yesterday: {yesterdaySentiment * 100}";
+                                tbSent.Text = $"{yesterday.Count} emails sent Yesterday";
+                            }
 
-                            var prevSentiment = await getAvgSentiment(prev);
-                            var yesterdaySentiment = await getAvgSentiment(yesterday);
-                            tbPrev.Text = $"2 days ago: {prevSentiment * 100}";
-                            tbYesterday.Text = $"Yesterday: {yesterdaySentiment * 100}";
-                            tbSent.Text = $"{yesterday.Count} emails sent Yesterday";
                         }
                     }
                 }
