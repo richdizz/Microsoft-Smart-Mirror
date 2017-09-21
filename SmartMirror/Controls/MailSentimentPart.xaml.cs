@@ -42,7 +42,7 @@ namespace SmartMirror.Controls
             {
                 if (resp.IsSuccessStatusCode)
                 {
-                    // HAPPY PATH
+                    // TODO: HAPPY PATH...not relevant yet because not setting the extension
                 }
                 else
                 {
@@ -81,6 +81,7 @@ namespace SmartMirror.Controls
                             var yesterdaySentiment = await getAvgSentiment(yesterday);
                             tbPrev.Text = $"2 days ago: {prevSentiment * 100}";
                             tbYesterday.Text = $"Yesterday: {yesterdaySentiment * 100}";
+                            tbSent.Text = $"{yesterday.Count} emails sent Yesterday";
                         }
                     }
                 }

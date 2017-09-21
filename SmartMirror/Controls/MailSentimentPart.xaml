@@ -11,6 +11,7 @@
         <StackPanel Orientation="Vertical">
             <TextBlock Name="tbPrev" Grid.Row="0"></TextBlock>
             <TextBlock Name="tbYesterday" Grid.Row="1"></TextBlock>
+            <TextBlock Name="tbSent" Grid.Row="2"></TextBlock>
         </StackPanel>
     </Grid>
 </local:MirrorPartBase>
