@@ -82,7 +82,7 @@ namespace SmartMirror.Controls
                         foreach (var evt in events)
                         {
                             // check if we need to add a new date header
-                            var thisDate = DateTime.Parse(evt.SelectToken("start.dateTime").Value<string>() + "+00").ToString("D");
+                            var thisDate = ParseDateWithUsCulture(evt.SelectToken("start.dateTime").Value<string>()).ToString("D");
                             if (thisDate != dateIndex)
                             {
                                 // remove this condition to show more than one calendar item
@@ -96,11 +96,11 @@ namespace SmartMirror.Controls
                             }
 
                             // parse the start and end date which are stored in UTC time
-                            DateTime start = DateTime.Parse(evt.SelectToken("start.dateTime").Value<string>() + "+00", new CultureInfo("en-US"));
-                            DateTime end = DateTime.Parse(evt.SelectToken("end.dateTime").Value<string>() + "+00", new CultureInfo("en-US"));
+                            DateTime start = ParseDateWithUsCulture(evt.SelectToken("start.dateTime").Value<string>());
+                            DateTime end = ParseDateWithUsCulture(evt.SelectToken("end.dateTime").Value<string>());
                             string subject = evt.SelectToken("subject").Value<string>();
                             string bodyPreview = evt.SelectToken("bodyPreview").Value<string>();
-                            
+
                             Grid grid = new Grid();
                             grid.Margin = new Thickness(0, 10, 0, 10);
                             grid.ColumnDefinitions.Add(new ColumnDefinition() { MaxWidth = 60, MinWidth = 60 });
@@ -122,7 +122,7 @@ namespace SmartMirror.Controls
                             Grid.SetColumn(sp, 1);
 
                             TextBlock tbTime = new TextBlock();
-                            tbTime.Padding = new Thickness(20,0,0,0);
+                            tbTime.Padding = new Thickness(20, 0, 0, 0);
                             tbTime.Width = this.ActualWidth - 60;
                             tbTime.Text = $"{start.ToString("h:mm tt")} - {end.ToString("h:mm tt")}";
                             tbTime.FontSize = 24;
@@ -142,6 +142,11 @@ namespace SmartMirror.Controls
                     }
                 }
             }
+        }
+
+        private static DateTime ParseDateWithUsCulture(string date)
+        {
+            return DateTime.Parse(date + "+00", new CultureInfo("en-US"));
         }
     }
 }
