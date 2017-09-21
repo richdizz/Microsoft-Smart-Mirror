@@ -39,70 +39,73 @@ namespace SmartMirror.Controls
                 for (int loop = 1; loop <= 3; loop++)
                 {
                     var jsonMessage = await GetCurrentUserInboxMessagesAsync(user.AuthResults.access_token);
-                    JArray messages = JObject.Parse(jsonMessage).Value<JArray>("value");
-
-                    if (messages.Count > 0)
+                    if (jsonMessage != null)
                     {
-                        inboxPanel.Children.Clear();
-                        // loop through messages
-                        foreach (var msg in messages)
+                        JArray messages = JObject.Parse(jsonMessage).Value<JArray>("value");
+
+                        if (messages.Count > 0)
                         {
-                            string from = msg.SelectToken("from.emailAddress.name").Value<string>();
-                            string subject = msg.SelectToken("subject").Value<string>();
-                            string importance = msg.SelectToken("importance").Value<string>();
-                            //string bodyPreview = msg.SelectToken("bodyPreview").Value<string>();
+                            inboxPanel.Children.Clear();
+                            // loop through messages
+                            foreach (var msg in messages)
+                            {
+                                string from = msg.SelectToken("from.emailAddress.name").Value<string>();
+                                string subject = msg.SelectToken("subject").Value<string>();
+                                string importance = msg.SelectToken("importance").Value<string>();
+                                //string bodyPreview = msg.SelectToken("bodyPreview").Value<string>();
 
-                            Grid grid = new Grid();
-                            grid.Margin = new Thickness(0, 10, 0, 10);
-                            grid.ColumnDefinitions.Add(new ColumnDefinition() { MaxWidth = 40, MinWidth = 40 });
-                            grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+                                Grid grid = new Grid();
+                                grid.Margin = new Thickness(0, 10, 0, 10);
+                                grid.ColumnDefinitions.Add(new ColumnDefinition() { MaxWidth = 40, MinWidth = 40 });
+                                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
 
-                            SymbolIcon icon = new SymbolIcon(Symbol.Mail);
-                            icon.Foreground = new SolidColorBrush(Windows.UI.Colors.White);
-                            if (importance == "high")
-                                icon.Foreground = new SolidColorBrush(Windows.UI.Colors.OrangeRed);
-                            icon.VerticalAlignment = VerticalAlignment.Top;
-                            grid.Children.Add(icon);
-                            Grid.SetColumn(icon, 0);
+                                SymbolIcon icon = new SymbolIcon(Symbol.Mail);
+                                icon.Foreground = new SolidColorBrush(Windows.UI.Colors.White);
+                                if (importance == "high")
+                                    icon.Foreground = new SolidColorBrush(Windows.UI.Colors.OrangeRed);
+                                icon.VerticalAlignment = VerticalAlignment.Top;
+                                grid.Children.Add(icon);
+                                Grid.SetColumn(icon, 0);
 
-                            StackPanel sp = new StackPanel();
-                            sp.Orientation = Orientation.Vertical;
-                            grid.Children.Add(sp);
-                            Grid.SetColumn(sp, 1);
+                                StackPanel sp = new StackPanel();
+                                sp.Orientation = Orientation.Vertical;
+                                grid.Children.Add(sp);
+                                Grid.SetColumn(sp, 1);
 
 
-                            TextBlock tbFrom = new TextBlock();
-                            tbFrom.Width = this.ActualWidth - 40;
-                            tbFrom.Text = from;
-                            tbFrom.FontSize = 24;
-                            tbFrom.TextWrapping = TextWrapping.Wrap;
-                            tbFrom.VerticalAlignment = VerticalAlignment.Top;
-                            sp.Children.Add(tbFrom);
+                                TextBlock tbFrom = new TextBlock();
+                                tbFrom.Width = this.ActualWidth - 40;
+                                tbFrom.Text = from;
+                                tbFrom.FontSize = 24;
+                                tbFrom.TextWrapping = TextWrapping.Wrap;
+                                tbFrom.VerticalAlignment = VerticalAlignment.Top;
+                                sp.Children.Add(tbFrom);
 
-                            TextBlock tbSubject = new TextBlock();
-                            tbSubject.Width = this.ActualWidth - 40;
-                            tbSubject.Text = subject;
-                            tbSubject.FontSize = 18;
-                            tbSubject.TextWrapping = TextWrapping.Wrap;
-                            sp.Children.Add(tbSubject);
+                                TextBlock tbSubject = new TextBlock();
+                                tbSubject.Width = this.ActualWidth - 40;
+                                tbSubject.Text = subject;
+                                tbSubject.FontSize = 18;
+                                tbSubject.TextWrapping = TextWrapping.Wrap;
+                                sp.Children.Add(tbSubject);
 
-                            //TextBlock tbbody = new TextBlock();
-                            //tbbody.Width = this.ActualWidth - 60;
-                            //tbbody.Text = bodyPreview;
-                            //tbbody.FontSize = 12;
-                            //tbbody.TextWrapping = TextWrapping.WrapWholeWords;
-                            //sp.Children.Add(tbbody);
+                                //TextBlock tbbody = new TextBlock();
+                                //tbbody.Width = this.ActualWidth - 60;
+                                //tbbody.Text = bodyPreview;
+                                //tbbody.FontSize = 12;
+                                //tbbody.TextWrapping = TextWrapping.WrapWholeWords;
+                                //sp.Children.Add(tbbody);
 
-                            Line line = new Line();
-                            line.Y1 = 10;
-                            line.Y2 = 10;
-                            line.X2 = this.ActualWidth;
-                            line.StrokeThickness = 1;
-                            line.Stroke = new SolidColorBrush(Windows.UI.Colors.White);
-                            line.StrokeDashArray = new DoubleCollection() { 1 };
+                                Line line = new Line();
+                                line.Y1 = 10;
+                                line.Y2 = 10;
+                                line.X2 = this.ActualWidth;
+                                line.StrokeThickness = 1;
+                                line.Stroke = new SolidColorBrush(Windows.UI.Colors.White);
+                                line.StrokeDashArray = new DoubleCollection() { 1 };
 
-                            inboxPanel.Children.Add(grid);
-                            //inboxPanel.Children.Add(line);
+                                inboxPanel.Children.Add(grid);
+                                //inboxPanel.Children.Add(line);
+                            }
                         }
                     }
 
@@ -129,7 +132,7 @@ namespace SmartMirror.Controls
                             grid.ColumnDefinitions.Add(new ColumnDefinition() { MaxWidth = 40, MinWidth = 40 });
                             grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
 
-                            SymbolIcon icon = new SymbolIcon(Symbol.Accept); //AllApps or Stop
+                            SymbolIcon icon = new SymbolIcon(Symbol.Stop); //AllApps or Stop or Accept
                             icon.Foreground = new SolidColorBrush(Windows.UI.Colors.White);
                             icon.VerticalAlignment = VerticalAlignment.Top;
                             grid.Children.Add(icon);
@@ -161,7 +164,7 @@ namespace SmartMirror.Controls
                         }
                     }
                 }
-                inboxPanel.Children.Clear();
+ 
                 await Task.Delay(15000);
             }
         }
