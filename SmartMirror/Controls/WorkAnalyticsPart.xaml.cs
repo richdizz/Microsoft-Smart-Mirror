@@ -180,13 +180,13 @@ namespace SmartMirror.Controls
             // First check if we have previous day sentiment score in schema extension
             HttpClient client = CreateClient();
 
-            using (var resp = await client.GetAsync($"https://graph.microsoft.com/v1.0/me/mailFolders"))
+            using (var resp = await client.GetAsync($"https://graph.microsoft.com/v1.0/me/mailFolders?$filter=displayName eq 'Sent Items'"))
             {
                 if (resp.IsSuccessStatusCode)
                 {
                     var json = await resp.Content.ReadAsStringAsync();
                     var folders = JsonConvert.DeserializeObject<MailFoldersResponse.RootObject>(json).value;
-                    var sentItems = folders.Where(f => f.displayName == "Sent Items").First();
+                    var sentItems = folders.First();
 
                     using (var resp2 = await client.GetAsync($"https://graph.microsoft.com/v1.0/me/mailFolders/{sentItems.id}/messages?$top=100"))
                     {
