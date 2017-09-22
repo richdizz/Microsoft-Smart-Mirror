@@ -136,6 +136,7 @@
       <DependentUpon>WorkAnalyticsPart.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converters\ValueToVisibilityConverter.cs" />
+    <Compile Include="Data\EmotionService.cs" />
     <Compile Include="Data\LocationService.cs" />
     <Compile Include="Data\WeatherService.cs" />
     <Compile Include="Extensions.cs" />
@@ -144,6 +145,7 @@
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Models\AuthResult.cs" />
+    <Compile Include="Models\Emotion.cs" />
     <Compile Include="Models\Forecast.cs" />
     <Compile Include="Models\IdToken.cs" />
     <Compile Include="Models\ImageWithFaceDetection.cs" />

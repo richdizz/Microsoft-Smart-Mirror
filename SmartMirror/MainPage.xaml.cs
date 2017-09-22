@@ -42,6 +42,7 @@ using Microsoft.Toolkit.Uwp.UI.Animations;
 using System.Diagnostics;
 using System.Text;
 using Windows.Devices.Enumeration;
+using SmartMirror.Data;
 
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
@@ -53,7 +54,7 @@ namespace SmartMirror
     /// </summary>
     public sealed partial class MainPage : Page
     {
-        private bool forceFirstUser = true; // this is a hack to force sign-in of the first user in storage
+        private bool forceFirstUser = false; // this is a hack to force sign-in of the first user in storage
         private User activeUser; // this represents the user currently signed into the mirror
         private AuthenticationContext ctx = new AuthenticationContext(AuthHelper.AUTHORITY, false, new TokenCache());
         private Queue<string> statementQueue = new Queue<string>();
@@ -62,6 +63,7 @@ namespace SmartMirror
         private static string FACE_COGSVC_KEY = "a1be835a55e64469a5d150bff962f15f"; // subscription key for Microsoft Face Cognitive Service
         private static string FACE_RECO_GROUP_NAME = "smartmirrorrecogroup_950c414a-af4e-4b5f-b32c-be191bc867d5";
         private static string LUIS_COGSVC_KEY = "6879f9dd46e3476fbf0f95e9c118fe29"; // subscription key for LUIS model
+        private static string EMOTION_COGSVC_KEY = "9f9d41cdf69441f986fa6f8932a08188";
         private ResourceLoader loader = new ResourceLoader();
         private SpeechRecognizer speechRecognizer;
         private static string directLineSecret = "sbnacTqQoeM.cwA.Cgo.fXlrtx5GtXTKcGY50wTiGRG5mNzCj8-grm4MsdcG8GE";
@@ -362,8 +364,10 @@ namespace SmartMirror
                                 await StorageHelper.SaveUserAsync(activeUser);
 
                                 // Welcome the user
+                                var emotion = await EmotionService.GetPrimaryEmotion(activeUser.Photo);
+
                                 Random rand = new Random();
-                                var statement = String.Format(loader.GetString("WelcomeBack" + rand.Next(6)), activeUser.GivenName);
+                                var statement = String.Format(loader.GetString($"WelcomeBack{emotion}" + rand.Next(6)), activeUser.GivenName);
                                 await speak(statement);
                                 repaint(this.RenderSize);
                                 await waitForUserExit(timeoutTicks);
@@ -418,10 +422,7 @@ namespace SmartMirror
 
             // The object for controlling the speech synthesis engine (voice).
             var synth = new Windows.Media.SpeechSynthesis.SpeechSynthesizer();
-            VoiceInformation voiceInfo = (
-                from voice in SpeechSynthesizer.AllVoices
-                where voice.Gender == VoiceGender.Female
-                select voice).FirstOrDefault() ?? SpeechSynthesizer.DefaultVoice;
+            VoiceInformation voiceInfo = SpeechSynthesizer.DefaultVoice;
             synth.Voice = voiceInfo;
 
             // Generate the audio stream from plain text.

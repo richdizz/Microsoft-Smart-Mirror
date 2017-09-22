@@ -120,4 +120,7 @@
   <data name="wunderground_api_key" xml:space="preserve">
     <value>6a757a18b56053e0</value>
   </data>
+  <data name="emotion_api_key" xml:space="preserve">
+    <value>9f9d41cdf69441f986fa6f8932a08188</value>
+  </data>
 </root>

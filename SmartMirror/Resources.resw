@@ -147,4 +147,151 @@
   <data name="WelcomeBack6" xml:space="preserve">
     <value>Hey {0}, you make all the other mirrors jeolous of me!</value>
   </data>
+  <data name="WelcomeBackanger0" xml:space="preserve">
+    <value>Hey anger!</value>
+  </data>
+  <data name="WelcomeBackanger1" xml:space="preserve">
+    <value>Hey anger!</value>
+  </data>
+  <data name="WelcomeBackanger2" xml:space="preserve">
+    <value>Hey anger!</value>
+  </data>
+  <data name="WelcomeBackanger3" xml:space="preserve">
+    <value>Hey anger!</value>
+  </data>
+  <data name="WelcomeBackanger4" xml:space="preserve">
+    <value>Hey anger!</value>
+  </data>
+  <data name="WelcomeBackanger5" xml:space="preserve">
+    <value>Hey anger!</value>
+  </data>
+  <data name="WelcomeBackanger6" xml:space="preserve">
+    <value>Hey anger!</value>
+  </data>
+  <data name="WelcomeBackcontempt0" xml:space="preserve">
+    <value>Hey contempt!</value>
+  </data>
+  <data name="WelcomeBackcontempt1" xml:space="preserve">
+    <value>Hey contempt!</value>
+  </data>
+  <data name="WelcomeBackcontempt2" xml:space="preserve">
+    <value>Hey contempt!</value>
+  </data>
+  <data name="WelcomeBackcontempt3" xml:space="preserve">
+    <value>Hey contempt!</value>
+  </data>
+  <data name="WelcomeBackcontempt4" xml:space="preserve">
+    <value>Hey contempt!</value>
+  </data>
+  <data name="WelcomeBackcontempt5" xml:space="preserve">
+    <value>Hey contempt!</value>
+  </data>
+  <data name="WelcomeBackcontempt6" xml:space="preserve">
+    <value>Hey contempt!</value>
+  </data>
+  <data name="WelcomeBackdisgust0" xml:space="preserve">
+    <value>Hey disgust!</value>
+  </data>
+  <data name="WelcomeBackdisgust1" xml:space="preserve">
+    <value>Hey disgust!</value>
+  </data>
+  <data name="WelcomeBackdisgust2" xml:space="preserve">
+    <value>Hey disgust!</value>
+  </data>
+  <data name="WelcomeBackdisgust3" xml:space="preserve">
+    <value>Hey disgust!</value>
+  </data>
+  <data name="WelcomeBackdisgust4" xml:space="preserve">
+    <value>Hey disgust!</value>
+  </data>
+  <data name="WelcomeBackdisgust5" xml:space="preserve">
+    <value>Hey disgust!</value>
+  </data>
+  <data name="WelcomeBackdisgust6" xml:space="preserve">
+    <value>Hey disgust!</value>
+  </data>
+  <data name="WelcomeBackfear0" xml:space="preserve">
+    <value>Hey fear!</value>
+  </data>
+  <data name="WelcomeBackfear1" xml:space="preserve">
+    <value>Hey fear!</value>
+  </data>
+  <data name="WelcomeBackfear2" xml:space="preserve">
+    <value>Hey fear!</value>
+  </data>
+  <data name="WelcomeBackfear3" xml:space="preserve">
+    <value>Hey fear!</value>
+  </data>
+  <data name="WelcomeBackfear4" xml:space="preserve">
+    <value>Hey fear!</value>
+  </data>
+  <data name="WelcomeBackfear5" xml:space="preserve">
+    <value>Hey fear!</value>
+  </data>
+  <data name="WelcomeBackfear6" xml:space="preserve">
+    <value>Hey fear!</value>
+  </data>
+  <data name="WelcomeBackhappiness0" xml:space="preserve">
+    <value>Hey happy!</value>
+  </data>
+  <data name="WelcomeBackhappiness1" xml:space="preserve">
+    <value>Hey happy!</value>
+  </data>
+  <data name="WelcomeBackhappiness2" xml:space="preserve">
+    <value>Hey happy!</value>
+  </data>
+  <data name="WelcomeBackhappiness3" xml:space="preserve">
+    <value>Hey happy!</value>
+  </data>
+  <data name="WelcomeBackhappiness4" xml:space="preserve">
+    <value>Hey happy!</value>
+  </data>
+  <data name="WelcomeBackhappiness5" xml:space="preserve">
+    <value>Hey happy!</value>
+  </data>
+  <data name="WelcomeBackhappiness6" xml:space="preserve">
+    <value>Hey happy!</value>
+  </data>
+  <data name="WelcomeBacksadness0" xml:space="preserve">
+    <value>Hey sadness!</value>
+  </data>
+  <data name="WelcomeBacksadness1" xml:space="preserve">
+    <value>Hey sadness!</value>
+  </data>
+  <data name="WelcomeBacksadness2" xml:space="preserve">
+    <value>Hey sadness!</value>
+  </data>
+  <data name="WelcomeBacksadness3" xml:space="preserve">
+    <value>Hey sadness!</value>
+  </data>
+  <data name="WelcomeBacksadness4" xml:space="preserve">
+    <value>Hey sadness!</value>
+  </data>
+  <data name="WelcomeBacksadness5" xml:space="preserve">
+    <value>Hey sadness!</value>
+  </data>
+  <data name="WelcomeBacksadness6" xml:space="preserve">
+    <value>Hey sadness!</value>
+  </data>
+  <data name="WelcomeBacksurprise0" xml:space="preserve">
+    <value>Hey surprise!</value>
+  </data>
+  <data name="WelcomeBacksurprise1" xml:space="preserve">
+    <value>Hey surprise!</value>
+  </data>
+  <data name="WelcomeBacksurprise2" xml:space="preserve">
+    <value>Hey surprise!</value>
+  </data>
+  <data name="WelcomeBacksurprise3" xml:space="preserve">
+    <value>Hey surprise!</value>
+  </data>
+  <data name="WelcomeBacksurprise4" xml:space="preserve">
+    <value>Hey surprise!</value>
+  </data>
+  <data name="WelcomeBacksurprise5" xml:space="preserve">
+    <value>Hey surprise!</value>
+  </data>
+  <data name="WelcomeBacksurprise6" xml:space="preserve">
+    <value>Hey surprise!</value>
+  </data>
 </root>
