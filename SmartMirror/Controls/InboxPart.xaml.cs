@@ -2,6 +2,7 @@
 using SmartMirror.Models;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -46,6 +47,7 @@ namespace SmartMirror.Controls
                         if (messages.Count > 0)
                         {
                             inboxPanel.Children.Clear();
+                            inboxWrapper.Title = "Recent unread emails";
                             // loop through messages
                             foreach (var msg in messages)
                             {
@@ -76,35 +78,25 @@ namespace SmartMirror.Controls
                                 TextBlock tbFrom = new TextBlock();
                                 tbFrom.Width = this.ActualWidth - 40;
                                 tbFrom.Text = from;
-                                tbFrom.FontSize = 24;
+                                tbFrom.Style = (Style)App.Current.Resources["SubSectionHeader"];
                                 tbFrom.TextWrapping = TextWrapping.Wrap;
-                                tbFrom.VerticalAlignment = VerticalAlignment.Top;
                                 sp.Children.Add(tbFrom);
 
                                 TextBlock tbSubject = new TextBlock();
                                 tbSubject.Width = this.ActualWidth - 40;
                                 tbSubject.Text = subject;
-                                tbSubject.FontSize = 18;
+                                tbSubject.Style = (Style)App.Current.Resources["Text"];
                                 tbSubject.TextWrapping = TextWrapping.Wrap;
                                 sp.Children.Add(tbSubject);
 
                                 //TextBlock tbbody = new TextBlock();
                                 //tbbody.Width = this.ActualWidth - 60;
                                 //tbbody.Text = bodyPreview;
-                                //tbbody.FontSize = 12;
+                                //tbbody.Style = (Style)App.Current.Resources["SubSectionHeader"];
                                 //tbbody.TextWrapping = TextWrapping.WrapWholeWords;
                                 //sp.Children.Add(tbbody);
 
-                                Line line = new Line();
-                                line.Y1 = 10;
-                                line.Y2 = 10;
-                                line.X2 = this.ActualWidth;
-                                line.StrokeThickness = 1;
-                                line.Stroke = new SolidColorBrush(Windows.UI.Colors.White);
-                                line.StrokeDashArray = new DoubleCollection() { 1 };
-
                                 inboxPanel.Children.Add(grid);
-                                //inboxPanel.Children.Add(line);
                             }
                         }
                     }
@@ -120,11 +112,13 @@ namespace SmartMirror.Controls
                     if (tasks.Count > 0)
                     {
                         inboxPanel.Children.Clear();
+                        inboxWrapper.Title = "Active tasks";
                         // loop through tasks
                         foreach (var tsk in tasks)
                         {
-                            string title = tsk.SelectToken("title").Value<string>();
-                            string dueDateTime = tsk.SelectToken("dueDateTime").Value<string>();
+                            string title = tsk.SelectToken("title").Value<string>(); //tsk.SelectToken("subject").Value<string>();
+                            string dueDateTimeString = tsk.SelectToken("dueDateTime").Value<string>(); //tsk.SelectToken("dueDateTime.dateTime").Value<string>();
+                            DateTime dueDateTime = ParseDateWithUsCulture(dueDateTimeString);
 
                             Grid grid = new Grid();
                             grid.Margin = new Thickness(0, 10, 0, 10);
@@ -133,6 +127,8 @@ namespace SmartMirror.Controls
 
                             SymbolIcon icon = new SymbolIcon(Symbol.Stop); //AllApps or Stop or Accept
                             icon.Foreground = new SolidColorBrush(Windows.UI.Colors.White);
+                            if (dueDateTime < DateTime.UtcNow) // task is overdue
+                                icon.Foreground = new SolidColorBrush(Windows.UI.Colors.OrangeRed);
                             icon.VerticalAlignment = VerticalAlignment.Top;
                             grid.Children.Add(icon);
                             Grid.SetColumn(icon, 0);
@@ -146,15 +142,14 @@ namespace SmartMirror.Controls
                             TextBlock tbTitle = new TextBlock();
                             tbTitle.Width = this.ActualWidth - 40;
                             tbTitle.Text = title;
-                            tbTitle.FontSize = 24;
+                            tbTitle.Style = (Style)App.Current.Resources["SubSectionHeader"];
                             tbTitle.TextWrapping = TextWrapping.Wrap;
-                            tbTitle.VerticalAlignment = VerticalAlignment.Top;
                             sp.Children.Add(tbTitle);
 
                             TextBlock tbDueDate = new TextBlock();
                             tbDueDate.Width = this.ActualWidth - 40;
-                            tbDueDate.Text = dueDateTime;
-                            tbDueDate.FontSize = 18;
+                            tbDueDate.Text = dueDateTime.ToString("D");
+                            tbDueDate.Style = (Style)App.Current.Resources["Text"];
                             tbDueDate.TextWrapping = TextWrapping.Wrap;
                             sp.Children.Add(tbDueDate);
 
@@ -193,7 +188,7 @@ namespace SmartMirror.Controls
             HttpClient client = new HttpClient();
             client.DefaultRequestHeaders.Add("Accept", "application/json");
             client.DefaultRequestHeaders.Add("Authorization", "Bearer " + accessToken);
-            using (var response = await client.GetAsync($"https://graph.microsoft.com/v1.0/me/planner/tasks/"))
+            using (var response = await client.GetAsync($"https://graph.microsoft.com/v1.0/me/planner/tasks/")) //https://graph.microsoft.com/beta/me/outlook/tasks?$filter = status ne 'completed'
             {
                 if (response.IsSuccessStatusCode)
                 {
@@ -202,6 +197,11 @@ namespace SmartMirror.Controls
                 }
             }
             return null;
+        }
+
+        private static DateTime ParseDateWithUsCulture(string date)
+        {
+            return DateTime.Parse(date + "+00", new CultureInfo("en-US"));
         }
     }
 }

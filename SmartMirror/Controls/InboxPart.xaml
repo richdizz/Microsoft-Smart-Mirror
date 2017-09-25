@@ -8,9 +8,13 @@
     mc:Ignorable="d"
     d:DesignHeight="300"
     d:DesignWidth="400">
-
-    <Grid>
+   
+    <local:MirrorPartContainer x:Name="inboxWrapper">
+        <local:MirrorPartContainer.PlaceHolder>
+            <Grid>
         <StackPanel Orientation="Vertical" Name="inboxPanel">
         </StackPanel>
     </Grid>
+        </local:MirrorPartContainer.PlaceHolder>
+    </local:MirrorPartContainer>
 </local:MirrorPartBase>
