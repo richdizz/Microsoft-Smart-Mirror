@@ -7,7 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     Name="control">
-    <StackPanel Orientation="Vertical">
+    <StackPanel Orientation="Vertical" Padding="20">
         <TextBlock Name="tbTitle" Text="" Style="{StaticResource PartTitle}"></TextBlock>
         <ContentControl Content="{Binding PlaceHolder, ElementName=control}" />
     </StackPanel>

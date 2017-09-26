@@ -8,28 +8,61 @@
     mc:Ignorable="d"
     d:DesignHeight="300"
     d:DesignWidth="400">
-
-    <Grid >
-        <StackPanel>
-            <TextBlock Text="Top Collaborators"/>
-            <ListBox ItemsSource="{Binding TopEmail}" Background="Black" Margin="0, 6, 0, 0">
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <Grid HorizontalAlignment="Stretch">
-                        <Grid Background="#444955" HorizontalAlignment="Left" Width="{Binding Width}"  Margin="0,-4,0,-4"/>
-                        <TextBlock Margin="5,0,0,0" Text="{Binding Name}" FontSize="16" HorizontalAlignment="Left"/>
-                        <!--<TextBlock Text="{Binding Count}" HorizontalAlignment="Right"/>-->
-                    </Grid>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-            <ListBox.ItemContainerStyle>
-                <Style TargetType="ListBoxItem">
-                    <Setter Property="Margin" Value="0 0 0 0"/>
-                    <Setter Property="Padding" Value="0 5 0 5"/>
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                </Style>
-            </ListBox.ItemContainerStyle>
-        </ListBox>
-        </StackPanel>
-    </Grid>
+    <UserControl.Resources>
+        <Storyboard x:Name="sp1In">
+            <DoubleAnimation Storyboard.TargetName="panelTrans1" Storyboard.TargetProperty="X" BeginTime="0:0:0.0" Duration="0:0:0.5" To="0"></DoubleAnimation>
+        </Storyboard>
+        <Storyboard x:Name="sp1Out">
+            <DoubleAnimation Storyboard.TargetName="panelTrans1" Storyboard.TargetProperty="X" BeginTime="0:0:0.0" Duration="0:0:0.5" To="-500" Completed="DoubleAnimation_Completed" x:Name="a1"></DoubleAnimation>
+        </Storyboard>
+        <Storyboard x:Name="sp2In">
+            <DoubleAnimation Storyboard.TargetName="panelTrans2" Storyboard.TargetProperty="X" BeginTime="0:0:0.0" Duration="0:0:0.5" To="0"></DoubleAnimation>
+        </Storyboard>
+        <Storyboard x:Name="sp2Out">
+            <DoubleAnimation Storyboard.TargetName="panelTrans2" Storyboard.TargetProperty="X" BeginTime="0:0:0.0" Duration="0:0:0.5" To="-500" Completed="DoubleAnimation_Completed" x:Name="a2"></DoubleAnimation>
+        </Storyboard>
+    </UserControl.Resources>
+    <local:MirrorPartContainer x:Name="wrapper">
+        <local:MirrorPartContainer.PlaceHolder>
+            <Grid local:Clip.ToBounds="true">
+                <StackPanel Margin="20,0,0,0" Name="sp1">
+                    <StackPanel.RenderTransform>
+                        <TranslateTransform X="0" x:Name="panelTrans1"></TranslateTransform>
+                    </StackPanel.RenderTransform>
+                    <TextBlock Text="Top Collaborators" Style="{StaticResource SubSectionHeader}"/>
+                    <ListBox ItemsSource="{Binding TopEmail}" Background="Black" Margin="0, 0, 0, 0">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid Background="#ffffff" HorizontalAlignment="Left" VerticalAlignment="Center" Width="{Binding Width}" Height="30" Margin="10,0,0,0"/>
+                                    <TextBlock Foreground="#000000" HorizontalAlignment="Left" VerticalAlignment="Center" Text="{Binding Name}" FontSize="12" Margin="65,0,0,0"/>
+                                    <Ellipse Width="60" Height="60" Fill="Black" HorizontalAlignment="Left" VerticalAlignment="Center" Stroke="White"></Ellipse>
+                                    <Ellipse Width="60" Height="60" Fill="{Binding Fill}" HorizontalAlignment="Left" VerticalAlignment="Center" Stroke="White"></Ellipse>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="Margin" Value="0 0 0 0"/>
+                                <Setter Property="Padding" Value="0 5 0 5"/>
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                    </ListBox>
+                </StackPanel>
+                <StackPanel Margin="20,0,0,0" Name="sp2">
+                    <StackPanel.RenderTransform>
+                        <TranslateTransform X="500" x:Name="panelTrans2"></TranslateTransform>
+                    </StackPanel.RenderTransform>
+                    <TextBlock Text="Email Analytics" Style="{StaticResource SubSectionHeader}"/>
+                    <TextBlock Text="Emails Sent (Yesterday)" Style="{StaticResource Text}" HorizontalAlignment="Center"/>
+                    <TextBlock Text="23" Style="{StaticResource Stat}"/>
+                    <TextBlock Text="Email Sentiment (Yesterday)" Style="{StaticResource Text}" HorizontalAlignment="Center"/>
+                    <TextBlock Text="92.3%" Style="{StaticResource Stat}"/>
+                    <TextBlock Text="Sentiment Trend" Style="{StaticResource Text}" HorizontalAlignment="Center"/>
+                    <TextBlock Text="-12%" Style="{StaticResource Stat}"/>
+                </StackPanel>
+            </Grid>
+        </local:MirrorPartContainer.PlaceHolder>
+    </local:MirrorPartContainer>
 </local:MirrorPartBase>

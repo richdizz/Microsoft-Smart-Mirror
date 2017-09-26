@@ -54,7 +54,7 @@ namespace SmartMirror
     /// </summary>
     public sealed partial class MainPage : Page
     {
-        private bool forceFirstUser = false; // this is a hack to force sign-in of the first user in storage
+        private bool forceFirstUser = true; // this is a hack to force sign-in of the first user in storage
         private User activeUser; // this represents the user currently signed into the mirror
         private AuthenticationContext ctx = new AuthenticationContext(AuthHelper.AUTHORITY, false, new TokenCache());
         private Queue<string> statementQueue = new Queue<string>();
@@ -114,8 +114,8 @@ namespace SmartMirror
             this.mediaElement.MediaEnded += MediaElement_MediaEnded;
 
             // Setup default view of fullscreen
-            ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.FullScreen;
-            ApplicationView.GetForCurrentView().TryEnterFullScreenMode();
+            //ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.FullScreen;
+            //ApplicationView.GetForCurrentView().TryEnterFullScreenMode();
         }
 
         /// <summary>

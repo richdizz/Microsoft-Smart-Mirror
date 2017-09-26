@@ -10,11 +10,9 @@
     <local:MirrorPartContainer x:Name="wrapper">
         <local:MirrorPartContainer.PlaceHolder>
             <Grid>
-                <Path StrokeThickness="3" Stroke="White" 
-                      Data="M 41.5,202 V 100 H 100"></Path>
                 <Ellipse Name="imgEllipse" Fill="Black" Stroke="White" StrokeThickness="1"
-                      VerticalAlignment="Center" HorizontalAlignment="Center" Width="200" 
-                      Height="200" Margin="90 0 0 0"></Ellipse>
+                      VerticalAlignment="Center" HorizontalAlignment="Center" Width="160" 
+                      Height="160" Margin="90 0 0 0"></Ellipse>
             </Grid>
         </local:MirrorPartContainer.PlaceHolder>
     </local:MirrorPartContainer>

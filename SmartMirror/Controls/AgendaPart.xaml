@@ -10,10 +10,18 @@
     <local:MirrorPartContainer x:Name="wrapper">
         <local:MirrorPartContainer.PlaceHolder>
             <Grid>
-                <Line StrokeThickness="3" HorizontalAlignment="Left" Margin="40 0 0 0"
-                  VerticalAlignment="Stretch" Y2="1" Stretch="Fill" 
-                  StrokeEndLineCap="Square" StrokeStartLineCap="Square" Stroke="White" 
+                <Line StrokeThickness="3" HorizontalAlignment="Left" Margin="40 40 0 0"
+                  VerticalAlignment="Stretch" Y2="1" Stretch="Fill" Stroke="White"
+                  StrokeEndLineCap="Square" StrokeStartLineCap="Square"
                   Visibility="Collapsed" Name="timeline" />
+                <Rectangle Width="60" Height="40" VerticalAlignment="Bottom" HorizontalAlignment="Left">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#00000000" Offset="0" />
+                            <GradientStop Color="#FF000000" Offset="1" />
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
                 <StackPanel Orientation="Vertical" Name="agendaPanel">
 
                 </StackPanel>   

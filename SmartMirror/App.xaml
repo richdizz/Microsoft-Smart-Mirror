@@ -59,6 +59,13 @@
                 <Setter Property="TextWrapping" Value="WrapWholeWords" />
             </Style>
 
+            <Style x:Key="Stat" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="Segoe UI"/>
+                <Setter Property="FontSize" Value="42"/>
+                <Setter Property="TextWrapping" Value="WrapWholeWords" />
+                <Setter Property="HorizontalAlignment" Value="Center" />
+            </Style>
+
         </ResourceDictionary>
     </Application.Resources>
 </Application>

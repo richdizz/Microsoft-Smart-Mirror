@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
@@ -16,6 +17,8 @@ using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Media.Animation;
+using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Xaml.Navigation;
 
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
@@ -129,27 +132,22 @@ namespace SmartMirror.Controls
             set { SetValue(NameProperty, value); }
         }
 
+        public Brush Fill
+        {
+            get { return (Brush)GetValue(FillProperty); }
+            set { SetValue(FillProperty, value); }
+        }
+
         // Using a DependencyProperty as the backing store for Name.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty NameProperty =
             DependencyProperty.Register("Name", typeof(String), typeof(EmailStat), new PropertyMetadata(String.Empty));
 
+        // Using a DependencyProperty as the backing store for Fill.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty FillProperty =
+            DependencyProperty.Register("Fill", typeof(Brush), typeof(EmailStat), new PropertyMetadata(String.Empty));
+
 
         public string Email { get; set; }
-
-
-
-        public string ProfileImage
-        {
-            get { return (string)GetValue(ProfileImageProperty); }
-            set { SetValue(ProfileImageProperty, value); }
-        }
-
-        // Using a DependencyProperty as the backing store for ProfileImage.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty ProfileImageProperty =
-            DependencyProperty.Register("ProfileImage", typeof(string), typeof(EmailStat), new PropertyMetadata(String.Empty));
-
-
-
         public int Count { get; set; }
         public double Width { get; set; }
     }
@@ -165,11 +163,25 @@ namespace SmartMirror.Controls
         public WorkAnalyticsPart()
         {
             this.InitializeComponent();
-            
+            wrapper.Title = "Workplace Analytics";
             this.DataContext = ViewModel;
         }
 
         private User user;
+
+        private void addUnique(Dictionary<string, EmailStat> collection, string email, string name)
+        {
+            if (collection.ContainsKey(email))
+                collection[email].Count++;
+            else
+                collection.Add(email, new EmailStat()
+                {
+                    Count = 1,
+                    Email = email,
+                    Name = name,
+                    Fill = new SolidColorBrush(Windows.UI.Colors.Black)
+                });
+        }
 
         public async override void Initialize(User user, bool isEditMode = false)
         {
@@ -194,26 +206,76 @@ namespace SmartMirror.Controls
                         var messages = JsonConvert.DeserializeObject<MailFolderMessagesResponse.RootObject>(json2).value;
 
                         var last5days = messages.Where(m => m.sentDateTime > DateTime.Now.AddDays(-5)).ToList();
+                        var recipients = new Dictionary<String, EmailStat>();
+                        last5days.ForEach(m => m.toRecipients.ForEach(r => addUnique(recipients, r.emailAddress.address, r.emailAddress.name)));
+                        var stats = recipients.Values.OrderByDescending(s => s.Count).ToList();
 
-                        var recipients = new List<String>();
-
-                        last5days.ForEach(m => m.toRecipients.ForEach(r => recipients.Add(r.emailAddress.name)));
-
-                        var stats = recipients.GroupBy(r => r)
-                            .Select(g => new EmailStat{ Name = g.Key, Count = g.Count() }) 
-                            .OrderByDescending( s => s.Count).ToList();
-
+                        // Calculate the top count and apply to widths
                         var max = stats.Max(m => m.Count);
-
                         var w = this.ActualWidth;
-                        
-                        stats.Take(4).ToList().ForEach(es =>
+                        stats.Take(4).ToList().ForEach(async (es) =>
                         {
-                            //LoadImage(es);
                             es.Width = w / max * es.Count;
+                            es.Fill = await getProfilePhoto(es.Email);
                             ViewModel.TopEmail.Add(es);
                         });
 
+                        // setup animations
+                        await scroll();
+                    }
+                }
+            }
+        }
+
+        private int activePanel = 1;
+        private async Task scroll()
+        {
+            await Task.Delay(10000);
+            if (activePanel == 1)
+            {
+                sp1Out.Begin();
+                sp2In.Begin();
+                activePanel = 2;
+            }
+            else
+            {
+                sp2Out.Begin();
+                sp1In.Begin();
+                activePanel = 1;
+            }
+            await scroll();
+        }
+
+        private async Task<ImageBrush> getProfilePhoto(string email)
+        {
+            HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Authorization", "Bearer " + this.user.AuthResults.access_token);
+            using (var resp = await client.GetAsync($"https://graph.microsoft.com/beta/users/{email}/photo/$value"))
+            {
+                if (resp.IsSuccessStatusCode)
+                {
+                    var stream = await resp.Content.ReadAsStreamAsync();
+                    byte[] bytes = new byte[stream.Length];
+                    stream.Read(bytes, 0, (int)stream.Length);
+
+                    using (var memStream = new MemoryStream(bytes))
+                    {
+                        BitmapImage bitmap = new BitmapImage();
+                        await bitmap.SetSourceAsync(memStream.AsRandomAccessStream());
+                        ImageBrush fill = new ImageBrush();
+                        fill.ImageSource = bitmap;
+                        return fill;
+                    }
+                }
+                else
+                {
+                    using (var file = File.OpenRead("assets\\profile.png"))
+                    {
+                        BitmapImage bitmap = new BitmapImage();
+                        await bitmap.SetSourceAsync(file.AsRandomAccessStream());
+                        ImageBrush fill = new ImageBrush();
+                        fill.ImageSource = bitmap;
+                        return fill;
                     }
                 }
             }
@@ -227,17 +289,80 @@ namespace SmartMirror.Controls
             return client;
         }
 
-        // NOTE: This works with email being loaded, not name.  
-        //public async void LoadImage(EmailStat stat)
-        //{
-        //    HttpClient client = CreateClient();
-        //    using (var resp = await client.GetAsync($"https://graph.microsoft.com/v1.0/users?$filter=mail eq '{stat.Email}'"))
-        //    {
-        //        if (resp.IsSuccessStatusCode)
-        //        {
-        //            var json = resp.Content.ReadAsByteArrayAsync();
-        //        }
-        //    }
-        //}
+        private void DoubleAnimation_Completed(object sender, object e)
+        {
+            if (((DoubleAnimation)sender) == a1)
+            {
+                panelTrans1.X = 500;
+            }
+            else
+            {
+                panelTrans2.X = 500;
+            }
+        }
+    }
+
+    public class Clip
+    {
+        public static bool GetToBounds(DependencyObject depObj)
+        {
+            return (bool)depObj.GetValue(ToBoundsProperty);
+        }
+
+        public static void SetToBounds(DependencyObject depObj, bool clipToBounds)
+        {
+            depObj.SetValue(ToBoundsProperty, clipToBounds);
+        }
+
+        /// <summary>
+        /// Identifies the ToBounds Dependency Property.
+        /// <summary>
+        public static readonly DependencyProperty ToBoundsProperty =
+            DependencyProperty.RegisterAttached("ToBounds", typeof(bool),
+            typeof(Clip), new PropertyMetadata(false, OnToBoundsPropertyChanged));
+
+        private static void OnToBoundsPropertyChanged(DependencyObject d,
+            DependencyPropertyChangedEventArgs e)
+        {
+            FrameworkElement fe = d as FrameworkElement;
+            if (fe != null)
+            {
+                ClipToBounds(fe);
+
+                // whenever the element which this property is attached to is loaded
+                // or re-sizes, we need to update its clipping geometry
+                fe.Loaded += new RoutedEventHandler(fe_Loaded);
+                fe.SizeChanged += new SizeChangedEventHandler(fe_SizeChanged);
+            }
+        }
+
+        /// <summary>
+        /// Creates a rectangular clipping geometry which matches the geometry of the
+        /// passed element
+        /// </summary>
+        private static void ClipToBounds(FrameworkElement fe)
+        {
+            if (GetToBounds(fe))
+            {
+                fe.Clip = new RectangleGeometry()
+                {
+                    Rect = new Rect(0, 0, fe.ActualWidth, fe.ActualHeight)
+                };
+            }
+            else
+            {
+                fe.Clip = null;
+            }
+        }
+
+        static void fe_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            ClipToBounds(sender as FrameworkElement);
+        }
+
+        static void fe_Loaded(object sender, RoutedEventArgs e)
+        {
+            ClipToBounds(sender as FrameworkElement);
+        }
     }
 }

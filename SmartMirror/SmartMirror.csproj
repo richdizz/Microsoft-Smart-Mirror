@@ -164,6 +164,9 @@
       <SubType>Designer</SubType>
     </AppxManifest>
     <PRIResource Include="Resources.resw" />
+    <Content Include="Assets\profile.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Assets\Weather\chanceflurries.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
