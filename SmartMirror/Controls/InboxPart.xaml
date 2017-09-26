@@ -23,13 +23,13 @@
     <local:MirrorPartContainer x:Name="wrapper">
         <local:MirrorPartContainer.PlaceHolder>
             <Grid local:Clip.ToBounds="true">
-                <StackPanel Orientation="Vertical" Name="inboxPanel">
+                <StackPanel Orientation="Vertical" Name="inboxPanel" Margin="20,0,0,0">
                     <StackPanel.RenderTransform>
                         <TranslateTransform X="0" x:Name="panelTrans1"></TranslateTransform>
                     </StackPanel.RenderTransform>
                     <TextBlock Text="Recent Email" Style="{StaticResource SubSectionHeader}"/>
                 </StackPanel>
-                <StackPanel Orientation="Vertical" Name="tasksPanel">
+                <StackPanel Orientation="Vertical" Name="tasksPanel" Margin="20,0,0,0">
                     <StackPanel.RenderTransform>
                         <TranslateTransform X="500" x:Name="panelTrans2"></TranslateTransform>
                     </StackPanel.RenderTransform>

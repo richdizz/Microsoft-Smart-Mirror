@@ -37,10 +37,10 @@ namespace SmartMirror.Controls
             var location = await LocationService.GetLocationAsync();
             var weather = await WeatherService.GetWeather(location);
 
-            Temperature.Text = $"Temp: {weather.temp_f.ToString()} °F";
+            Temperature.Text = $"{weather.temp_f.ToString()} °F";
             City.Text = $"{location.city}, {location.state}";
-            FeelsLike.Text = $"Feels like: {weather.feelslike_f.ToString()} °F";
-            Humidity.Text = $"Humidity: {weather.relative_humidity}";
+            //FeelsLike.Text = $"Feels like: {weather.feelslike_f.ToString()} °F";
+            //Humidity.Text = $"Humidity: {weather.relative_humidity}";
             Wind.Text = $"Wind: {weather.wind_mph} mph";
             High.Text = $"High: {weather.Forecast.high.fahrenheit} °F";
             Low.Text = $"Low: {weather.Forecast.low.fahrenheit} °F";

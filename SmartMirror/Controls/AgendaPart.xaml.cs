@@ -51,8 +51,13 @@ namespace SmartMirror.Controls
 
                         // loop through events
                         var dateIndex = "";
+                        var index = 0;
                         foreach (var evt in events)
                         {
+                            // Hack to only show next 6
+                            if (index++ == 6)
+                                break;
+
                             // check if we need to add a new date header
                             var thisDate = ParseDateWithUsCulture(evt.SelectToken("start.dateTime").Value<string>()).ToString("D");
                             if (thisDate != dateIndex)

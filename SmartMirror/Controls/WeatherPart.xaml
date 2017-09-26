@@ -20,17 +20,12 @@
         <Border Grid.Column ="1"/>
         <Border Grid.Row="1" Grid.ColumnSpan="2"/>
         <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
-            <TextBlock Name="City" Foreground="White" FontSize="24" />
-            <TextBlock Name="Temperature" Foreground="White" FontSize="18"/>
-            <TextBlock Name="FeelsLike" Foreground="White" FontSize="18" />
-            <TextBlock Name="Humidity" Foreground="White" FontSize="18"/>
-            <TextBlock Name="Wind" Foreground="White" FontSize="18"/>
+            <TextBlock Name="Temperature" Foreground="White" Style="{StaticResource Stat}" HorizontalAlignment="Left"/>
+            <TextBlock Name="City" Foreground="White" Style="{StaticResource SubSectionHeader}" />
+            <TextBlock Name="Wind" Foreground="White" Style="{StaticResource Text}"/>
+            <TextBlock Name="High" Foreground="White" Style="{StaticResource Text}"/>
+            <TextBlock Name="Low" Foreground="White" Style="{StaticResource Text}"/>
         </StackPanel>
-        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal"
-            HorizontalAlignment="Center" VerticalAlignment="Center">
-            <TextBlock Name="High" Foreground="White" FontSize="18" Margin="0,0,10,0"/>
-            <TextBlock Name="Low" Foreground="White" FontSize="18" Margin="0,0,10,0"/>
-        </StackPanel>
-        <Image Name="WeatherIcon"  Margin="10" Width="80" Height="80"/>
+        <Image Name="WeatherIcon"  Margin="2" Width="160" Height="160"/>
     </Grid>
 </local:MirrorPartBase>
