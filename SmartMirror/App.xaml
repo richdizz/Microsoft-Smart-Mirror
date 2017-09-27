@@ -22,10 +22,6 @@
             <SolidColorBrush  x:Key="BlackColor">#000000</SolidColorBrush >
             <SolidColorBrush  x:Key="GreenColor">#0aca91</SolidColorBrush >
 
-            <!--Converters-->
-            <converters:ValueToVisibilityConverter x:Key="visConverter" />
-
-            
             <!-- Control-specific styles -->
             <Style x:Key="PartTitle" TargetType="TextBlock">
                 <Setter Property="FontFamily" Value="Segoe UI"/>

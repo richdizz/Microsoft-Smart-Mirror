@@ -135,7 +135,6 @@
     <Compile Include="Controls\WorkAnalyticsPart.xaml.cs">
       <DependentUpon>WorkAnalyticsPart.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Converters\ValueToVisibilityConverter.cs" />
     <Compile Include="Data\EmotionService.cs" />
     <Compile Include="Data\LocationService.cs" />
     <Compile Include="Data\WeatherService.cs" />

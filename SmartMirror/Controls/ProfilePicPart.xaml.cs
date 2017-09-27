@@ -53,6 +53,9 @@ namespace SmartMirror.Controls
                         fill.ImageSource = bitmap;
                         imgEllipse.Fill = fill;
                         imgEllipse.Visibility = Visibility.Visible;
+                        imgEllipse.Width = this.ActualWidth / 2;
+                        imgEllipse.Height = this.ActualWidth / 2;
+                        imgEllipse.Margin = new Thickness(imgEllipse.Width / 2, 0, 0, 0);
                     }
                 }
             }
