@@ -125,7 +125,7 @@ namespace SmartMirror.Controls
                             sentiment += docs[j].SelectToken("score").Value<Decimal>();
                         }
 
-                        sentiment = sentiment / docs.Count;
+                        sentiment = (docs.Count == 0) ? 0 : sentiment / docs.Count;
                         return sentiment;
                     }
                     else

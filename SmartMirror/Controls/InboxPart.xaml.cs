@@ -104,7 +104,7 @@ namespace SmartMirror.Controls
 
 
                         TextBlock tbFrom = new TextBlock();
-                        tbFrom.Width = this.ActualWidth - 40;
+                        tbFrom.Width = this.ActualWidth - 100;
                         tbFrom.Text = from;
                         tbFrom.FontSize = 24;
                         tbFrom.TextWrapping = TextWrapping.Wrap;
@@ -112,7 +112,7 @@ namespace SmartMirror.Controls
                         sp.Children.Add(tbFrom);
 
                         TextBlock tbSubject = new TextBlock();
-                        tbSubject.Width = this.ActualWidth - 40;
+                        tbSubject.Width = this.ActualWidth - 100;
                         tbSubject.Text = subject;
                         tbSubject.FontSize = 18;
                         tbSubject.TextWrapping = TextWrapping.Wrap;
@@ -173,7 +173,7 @@ namespace SmartMirror.Controls
 
 
                         TextBlock tbTitle = new TextBlock();
-                        tbTitle.Width = this.ActualWidth - 40;
+                        tbTitle.Width = this.ActualWidth - 100;
                         tbTitle.Text = title;
                         tbTitle.FontSize = 24;
                         tbTitle.TextWrapping = TextWrapping.Wrap;
@@ -181,7 +181,7 @@ namespace SmartMirror.Controls
                         sp.Children.Add(tbTitle);
 
                         TextBlock tbDueDate = new TextBlock();
-                        tbDueDate.Width = this.ActualWidth - 40;
+                        tbDueDate.Width = this.ActualWidth - 100;
                         tbDueDate.Text = $"{due.ToString("d/M/yyyy")}"; ;
                         tbDueDate.FontSize = 18;
                         tbDueDate.TextWrapping = TextWrapping.Wrap;
