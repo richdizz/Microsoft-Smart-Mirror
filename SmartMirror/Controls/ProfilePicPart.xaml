@@ -12,7 +12,7 @@
             <Grid>
                 <Ellipse Name="imgEllipse" Fill="Black" Stroke="White" StrokeThickness="1"
                       VerticalAlignment="Center" HorizontalAlignment="Center" Width="160" 
-                      Height="160"></Ellipse>
+                      Height="160" DoubleTapped="imgEllipse_DoubleTapped"></Ellipse>
             </Grid>
         </local:MirrorPartContainer.PlaceHolder>
     </local:MirrorPartContainer>

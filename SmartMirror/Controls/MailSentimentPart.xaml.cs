@@ -166,16 +166,4 @@ namespace SmartMirror.Controls
             }
         }
     }
-
-    public class Documents
-    {
-        public Documents() { documents = new List<Document>(); }
-        public List<Document> documents { get; set; }
-    }
-    public class Document
-    {
-        public string language { get; set; }
-        public int id { get; set; }
-        public string text { get; set; }
-    }
 }

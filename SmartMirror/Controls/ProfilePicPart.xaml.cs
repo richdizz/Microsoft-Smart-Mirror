@@ -60,5 +60,14 @@ namespace SmartMirror.Controls
                 }
             }
         }
+
+        private void imgEllipse_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+        {
+            if (OnSignOut != null)
+                OnSignOut(this, new EventArgs());
+        }
+        public delegate void SignOutHandler(object sender, EventArgs args);
+        public event SignOutHandler OnSignOut;
+
     }
 }

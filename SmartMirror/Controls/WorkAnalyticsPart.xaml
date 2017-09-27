@@ -56,11 +56,11 @@
                     </StackPanel.RenderTransform>
                     <TextBlock Text="Email Analytics" Style="{StaticResource SubSectionHeader}"/>
                     <TextBlock Text="Emails Sent (Yesterday)" Style="{StaticResource Text}" HorizontalAlignment="Center"/>
-                    <TextBlock Text="23" Style="{StaticResource Stat}"/>
+                    <TextBlock Text="0" Style="{StaticResource Stat}" Name="tbSent"/>
                     <TextBlock Text="Email Sentiment (Yesterday)" Style="{StaticResource Text}" HorizontalAlignment="Center"/>
-                    <TextBlock Text="92.3%" Style="{StaticResource Stat}"/>
+                    <TextBlock Text="0" Style="{StaticResource Stat}" Name="tbSentiment"/>
                     <TextBlock Text="Sentiment Trend" Style="{StaticResource Text}" HorizontalAlignment="Center"/>
-                    <TextBlock Text="-12%" Style="{StaticResource Stat}"/>
+                    <TextBlock Text="0" Style="{StaticResource Stat}" Name="tbTrend"/>
                 </StackPanel>
             </Grid>
         </local:MirrorPartContainer.PlaceHolder>

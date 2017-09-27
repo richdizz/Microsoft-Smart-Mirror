@@ -43,6 +43,7 @@ using System.Diagnostics;
 using System.Text;
 using Windows.Devices.Enumeration;
 using SmartMirror.Data;
+using Windows.ApplicationModel.Core;
 
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
@@ -508,32 +509,25 @@ namespace SmartMirror
             byte[] imageBytes = null;
             IList<DetectedFace> faces = null;
 
-            try
+            var lowLagCapture = await capture.PrepareLowLagPhotoCaptureAsync(ImageEncodingProperties.CreateUncompressed(MediaPixelFormat.Bgra8));
+
+            // Capture a frame and check for faces
+            var photo = await lowLagCapture.CaptureAsync();
+            var bmp = SoftwareBitmap.Convert(photo.Frame.SoftwareBitmap, BitmapPixelFormat.Nv12);
+
+            // Get the jpeg image bytes for this image
+            using (var ms = new InMemoryRandomAccessStream())
             {
-                var lowLagCapture = await capture.PrepareLowLagPhotoCaptureAsync(ImageEncodingProperties.CreateUncompressed(MediaPixelFormat.Bgra8));
-
-                // Capture a frame and check for faces
-                var photo = await lowLagCapture.CaptureAsync();
-                var bmp = SoftwareBitmap.Convert(photo.Frame.SoftwareBitmap, BitmapPixelFormat.Nv12);
-
-                // Get the jpeg image bytes for this image
-                using (var ms = new InMemoryRandomAccessStream())
-                {
-                    var jpeg = SoftwareBitmap.Convert(photo.Frame.SoftwareBitmap, BitmapPixelFormat.Rgba16);
-                    BitmapEncoder encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.JpegEncoderId, ms);
-                    encoder.SetSoftwareBitmap(jpeg);
-                    await encoder.FlushAsync();
-                    imageBytes = new byte[ms.Size];
-                    await ms.ReadAsync(imageBytes.AsBuffer(), (uint)ms.Size, InputStreamOptions.None);
-                }
-
-                // Detect faces
-                faces = await faceDetector.DetectFacesAsync(bmp);
+                var jpeg = SoftwareBitmap.Convert(photo.Frame.SoftwareBitmap, BitmapPixelFormat.Rgba16);
+                BitmapEncoder encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.JpegEncoderId, ms);
+                encoder.SetSoftwareBitmap(jpeg);
+                await encoder.FlushAsync();
+                imageBytes = new byte[ms.Size];
+                await ms.ReadAsync(imageBytes.AsBuffer(), (uint)ms.Size, InputStreamOptions.None);
             }
-            catch (Exception)
-            {
-                throw;
-            }
+
+            // Detect faces
+            faces = await faceDetector.DetectFacesAsync(bmp);
 
             // TODO: crop captured picture to only look at user in the center;
             return new ImageWithFaceDetection(imageBytes, faces);
@@ -901,6 +895,14 @@ namespace SmartMirror
             // Add the part based on the user's profile or staticLayout
             string partNamespace = (staticLayout == null) ? activeUser.Preferences[index + 1] : staticLayout[index];
             MirrorPartBase ctrl = (MirrorPartBase)Activator.CreateInstance(Type.GetType(partNamespace));
+            if (ctrl is ProfilePicPart && forceFirstUser)
+                ((ProfilePicPart)ctrl).OnSignOut += async (object sender, EventArgs e) =>
+                {
+                    // this is a hack for demo mode
+                    await StorageHelper.ResetUsers();
+                    CoreApplication.Exit();
+                };
+
             ctrl.Index = index;
             ctrl.Initialize(this.activeUser, inEditMode);
             return ctrl;

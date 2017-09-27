@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Text;
 using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
@@ -41,6 +42,18 @@ namespace SmartMirror.Controls
         {
             public List<Value> value { get; set; }
         }
+    }
+
+    public class Documents
+    {
+        public Documents() { documents = new List<Document>(); }
+        public List<Document> documents { get; set; }
+    }
+    public class Document
+    {
+        public string language { get; set; }
+        public int id { get; set; }
+        public string text { get; set; }
     }
 
     public class MailFolderMessagesResponse
@@ -220,6 +233,10 @@ namespace SmartMirror.Controls
                             ViewModel.TopEmail.Add(es);
                         });
 
+
+                        // get sentiment 
+                        await processSentiment(sentItems.id);
+
                         // setup animations
                         await scroll();
                     }
@@ -298,6 +315,104 @@ namespace SmartMirror.Controls
             else
             {
                 panelTrans2.X = 500;
+            }
+        }
+
+        private async Task processSentiment(string sentFolderId)
+        {
+            // Process mail for a specific day
+            var now = DateTime.Now;
+            var d1 = $"{now.AddDays(-2).ToString("yyyy-MM-dd")}T00:00:00Z";
+            var d2 = $"{now.AddDays(-2).ToString("yyyy-MM-dd")}T23:59:59Z";
+            var d3 = $"{now.AddDays(-1).ToString("yyyy-MM-dd")}T00:00:00Z";
+            var d4 = $"{now.AddDays(-1).ToString("yyyy-MM-dd")}T23:59:59Z";
+            var yesterdayEndpoint = $"https://graph.microsoft.com/v1.0/me/mailfolders/{sentFolderId}/messages?$select=subject,sentDateTime,body&$orderBy=sentDateTime%20desc&$filter=sentDateTime ge {d1} and sentDateTime le {d2}";
+            var prev = await getItemsRecursive(user.AuthResults.access_token, yesterdayEndpoint);
+            var yesterdayEndPoint = $"https://graph.microsoft.com/v1.0/me/mailfolders/{sentFolderId}/messages?$select=subject,sentDateTime,body&$orderBy=sentDateTime%20desc&$filter=sentDateTime ge {d3} and sentDateTime le {d4}";
+            var yesterday = await getItemsRecursive(user.AuthResults.access_token, yesterdayEndPoint);
+            // Sometimes there is no sentiment - need to check first
+            // Neil Hutson
+            if (prev != null)
+            {
+                var prevSentiment = await getAvgSentiment(prev);
+                var yesterdaySentiment = await getAvgSentiment(yesterday);
+                var change = yesterdaySentiment - prevSentiment;
+                var trend = (change >= 0) ? "▲" : "▼";
+                tbSent.Text = yesterday.Count.ToString();
+                tbSentiment.Text = yesterdaySentiment.ToString("P");
+                tbTrend.Text = $"{change.ToString("P")} {trend}";
+            }
+        }
+
+        private async Task<Decimal> getAvgSentiment(JArray items)
+        {
+            Decimal sentiment = 0.0M;
+
+            // Build up a payload of all messages so we can make just one call into the text analytics service
+            var payload = new Documents();
+            for (var i = 0; i < items.Count; i++)
+            {
+                payload.documents.Add(new Document() { id = i, language = "en", text = items[i].SelectToken("body.content").Value<string>() });
+            }
+
+            // Only try to get sentiment if we are processing one or more messages
+            if (payload.documents.Count > 0)
+            {
+                // Get sentiment for all the messages
+                HttpClient sentimentClient = new HttpClient();
+                sentimentClient.DefaultRequestHeaders.Add("Accept", "application/json");
+                sentimentClient.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "03c751a65dcd4263a8cec60be5fdcfa5");
+                StringContent content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
+                using (var resp = await sentimentClient.PostAsync("https://westus.api.cognitive.microsoft.com/text/analytics/v2.0/sentiment", content))
+                {
+                    if (resp.IsSuccessStatusCode)
+                    {
+                        // Add the sentiment as an open extension on the message
+                        var sentimentResponse = await resp.Content.ReadAsStringAsync();
+                        var docs = (JArray)JObject.Parse(sentimentResponse)["documents"];
+                        for (var j = 0; j < docs.Count; j++)
+                        {
+                            sentiment += docs[j].SelectToken("score").Value<Decimal>();
+                        }
+
+                        sentiment = sentiment / docs.Count;
+                        return sentiment;
+                    }
+                    else
+                        return sentiment;
+                }
+            }
+            else
+                return sentiment;
+        }
+
+        private async Task<JArray> getItemsRecursive(string accessToken, string endpoint)
+        {
+            // First check if we have previous day sentiment score in schema extension
+            HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+            client.DefaultRequestHeaders.Add("Authorization", "Bearer " + accessToken);
+            client.DefaultRequestHeaders.Add("Prefer", "outlook.body-content-type=\"text\"");
+            using (var resp = await client.GetAsync(endpoint))
+            {
+                if (resp.IsSuccessStatusCode)
+                {
+                    var jsonStr = await resp.Content.ReadAsStringAsync();
+                    var json = JObject.Parse(jsonStr);
+                    var array = json.SelectToken("value").Value<JArray>();
+                    //array.Concat()
+
+                    // Check if there is a next link and keep processing
+                    if (json["@odata.nextLink"] != null)
+                    {
+                        // call recursively to get net page
+                        array.Concat(await getItemsRecursive(accessToken, json["@odata.nextLink"].Value<string>()));
+                    }
+
+                    return array;
+                }
+                else
+                    return null;
             }
         }
     }
