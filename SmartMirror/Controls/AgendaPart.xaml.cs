@@ -100,7 +100,7 @@ namespace SmartMirror.Controls
 
                             TextBlock tbTime = new TextBlock();
                             tbTime.Padding = new Thickness(20, 0, 0, 0);
-                            tbTime.Width = this.ActualWidth - 60;
+                            tbTime.Width = this.ActualWidth - 70;
                             tbTime.Text = $"{start.ToString("h:mm tt")} - {end.ToString("h:mm tt")}";
                             tbTime.Style = (Style)App.Current.Resources["SubSectionHeader"];
                             tbTime.TextWrapping = TextWrapping.WrapWholeWords;
@@ -108,7 +108,7 @@ namespace SmartMirror.Controls
 
                             TextBlock tbSubject = new TextBlock();
                             tbSubject.Padding = new Thickness(20, 0, 0, 0);
-                            tbSubject.Width = this.ActualWidth - 60;
+                            tbSubject.Width = this.ActualWidth - 70;
                             tbSubject.Text = subject;
                             tbSubject.Style = (Style)App.Current.Resources["Text"];
                             tbSubject.TextWrapping = TextWrapping.WrapWholeWords;
@@ -141,7 +141,7 @@ namespace SmartMirror.Controls
             TextBlock tbDate = new TextBlock();
             if (this.ActualWidth > 60)
             {
-                tbDate.Width = this.ActualWidth - 60;
+                tbDate.Width = this.ActualWidth - 70;
             }
             tbDate.Text = date;
             tbDate.Style = (Style)App.Current.Resources["SectionHeader"];

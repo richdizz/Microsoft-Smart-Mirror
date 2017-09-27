@@ -329,7 +329,7 @@ namespace SmartMirror
                                 await StorageHelper.SaveUserAsync(activeUser);
                                 await speak(new string[] { String.Format(loader.GetString("Welcome"), activeUser.GivenName), loader.GetString("GetStarted"), loader.GetString("ConfigInstructions") });
                                 repaint(this.RenderSize);
-                                await waitForUserExit(timeoutTicks);
+//                                await waitForUserExit(timeoutTicks);
                             }
                         }
                         else
@@ -355,7 +355,7 @@ namespace SmartMirror
                                     var statement = String.Format(loader.GetString("WelcomeBack" + rand.Next(6)), activeUser.GivenName);
                                     await speak(statement);
                                     repaint(this.RenderSize);
-                                    await waitForUserExit(timeoutTicks);
+//                                    await waitForUserExit(timeoutTicks);
                                 }
                             }
                             else
@@ -371,7 +371,7 @@ namespace SmartMirror
                                 var statement = String.Format(loader.GetString($"WelcomeBack{emotion}" + rand.Next(6)), activeUser.GivenName);
                                 await speak(statement);
                                 repaint(this.RenderSize);
-                                await waitForUserExit(timeoutTicks);
+//                                await waitForUserExit(timeoutTicks);
                             }
                         }
                     }

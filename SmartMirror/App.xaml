@@ -33,7 +33,7 @@
 
             <Style x:Key="SectionHeader" TargetType="TextBlock">
                 <Setter Property="FontFamily" Value="Segoe UI"/>
-                <Setter Property="FontSize" Value="32"/>
+                <Setter Property="FontSize" Value="30"/>
                 <Setter Property="TextWrapping" Value="WrapWholeWords" />
             </Style>
 
