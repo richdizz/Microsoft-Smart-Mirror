@@ -152,7 +152,9 @@ namespace SmartMirror.Controls
                     foreach (var tsk in tasks)
                     {
                         string title = tsk.SelectToken("subject").Value<string>();
-                        DateTime due = ParseDateWithUsCulture(tsk.SelectToken("dueDateTime.dateTime").Value<string>());
+                        DateTime? due = null;
+                        if (tsk.SelectToken("dueDateTime.dateTime") != null)
+                            ParseDateWithUsCulture(tsk.SelectToken("dueDateTime.dateTime").Value<string>());
 
                         Grid grid = new Grid();
                         grid.Margin = new Thickness(0, 10, 0, 10);
@@ -182,7 +184,7 @@ namespace SmartMirror.Controls
 
                         TextBlock tbDueDate = new TextBlock();
                         tbDueDate.Width = this.ActualWidth - 100;
-                        tbDueDate.Text = $"{due.ToString("d/M/yyyy")}"; ;
+                        tbDueDate.Text = (due != null) ? $"{((DateTime)due).ToString("d/M/yyyy")}" : "No due date set";
                         tbDueDate.FontSize = 18;
                         tbDueDate.TextWrapping = TextWrapping.Wrap;
                         sp.Children.Add(tbDueDate);
@@ -226,7 +228,7 @@ namespace SmartMirror.Controls
             HttpClient client = new HttpClient();
             client.DefaultRequestHeaders.Add("Accept", "application/json");
             client.DefaultRequestHeaders.Add("Authorization", "Bearer " + accessToken);
-            using (var response = await client.GetAsync($"https://graph.microsoft.com/beta/me/outlook/tasks"))
+            using (var response = await client.GetAsync($"https://graph.microsoft.com/beta/me/outlook/tasks?$top=5&$filter=status ne 'completed'"))
             {
                 if (response.IsSuccessStatusCode)
                 {
