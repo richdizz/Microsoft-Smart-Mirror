@@ -1,0 +1,31 @@
+﻿<local:MirrorPartBase
+    x:Class="SmartMirror.Controls.AgendaPart"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:SmartMirror.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <local:MirrorPartContainer x:Name="wrapper">
+        <local:MirrorPartContainer.PlaceHolder>
+            <Grid>
+                <Line StrokeThickness="3" HorizontalAlignment="Left" Margin="40 40 0 0"
+                  VerticalAlignment="Stretch" Y2="1" Stretch="Fill" Stroke="White"
+                  StrokeEndLineCap="Square" StrokeStartLineCap="Square"
+                  Visibility="Collapsed" Name="timeline" />
+                <Rectangle Width="60" Height="40" VerticalAlignment="Bottom" HorizontalAlignment="Left">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#00000000" Offset="0" />
+                            <GradientStop Color="#FF000000" Offset="1" />
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+                <StackPanel Orientation="Vertical" Name="agendaPanel">
+
+                </StackPanel>   
+            </Grid>
+        </local:MirrorPartContainer.PlaceHolder>
+    </local:MirrorPartContainer>
+</local:MirrorPartBase>
